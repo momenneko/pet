@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<title>pet</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<script src="js/three.min.js"></script>
+		<script src="js/stats.min.js"></script>
+		<script src="js/status.js"></script>
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #f0f0f0;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#status {
+				position: absolute;
+				top: 100px;
+				left: 10px;
+				width: 30%;
+				padding: 10px;
+				border: 1px solid #000;
+				background-color: #ccc;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="status">
+			<p>ステータス</p>
+			<div class="name">馬</div>
+			<div class="mood"></div>
+			<div class="hunger"></div>
+			<div class="user_info"></div>
+		</div>
+
+
+		<script>
+
+			var container, stats;
+			var camera, scene, projector, renderer;
+			var mesh, animation;
+			var KEY_CODE = {
+				UP: 38,
+				DOWN: 40,
+				LEFT: 37,
+				RIGHT: 39
+			};
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				//
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.x = 0;
+				camera.position.y = 200;
+				camera.position.z = 600;
+				// カメラ追従
+				camera.target = new THREE.Vector3( 0, 150, 0 );
+
+				scene = new THREE.Scene();
+
+				//
+
+				var light = new THREE.DirectionalLight( 0xefefff, 2 );
+				light.position.set( 1, 1, 1 ).normalize();
+				light.castShadow = true;
+				light.shadowMapWidth = 1024;
+				light.shadowMapHeight = 1024;
+				light.shadowMapDarkness = 0.95;
+				scene.add( light );
+
+				var light = new THREE.DirectionalLight( 0xffefef, 2 );
+				light.position.set( -1, -1, -1 ).normalize();
+				light.castShadow = true;
+				light.shadowMapWidth = 1024;
+				light.shadowMapHeight = 1024;
+				light.shadowMapDarkness = 0.95;
+				scene.add( light );
+
+				var loader = new THREE.JSONLoader( true );
+				loader.load( "js/horse.js", function( geometry ) {
+
+					mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } ) );
+					//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060} ) );
+					mesh.scale.set( 1, 1, 1 );
+					mesh.castShadow = true;
+					scene.add( mesh );
+
+					animation = new THREE.MorphAnimation( mesh );
+					animation.play();
+
+				} );
+
+				//
+
+				// 地面表示
+				var gt = THREE.ImageUtils.loadTexture( "img/grasslight-big.jpg" );
+				var gg = new THREE.PlaneBufferGeometry( 2000, 2000 );
+				var gm = new THREE.MeshPhongMaterial( { color: 0xffffff, map: gt } );
+
+				var ground = new THREE.Mesh( gg, gm );
+				ground.rotation.x = - Math.PI / 2;
+				ground.material.map.repeat.set( 8, 8 );
+				ground.material.map.wrapS = ground.material.map.wrapT = THREE.RepeatWrapping;
+				ground.receiveShadow = true;
+
+				scene.add( ground );
+
+				//
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.shadowMapEnabled = true;
+				renderer.setClearColor( 0xf0f0f0 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild(renderer.domElement);
+
+				//
+
+				// FPS表示
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				//
+
+				// 座標軸表示
+				var axis = new THREE.AxisHelper(1000);
+				axis.position.set(0,0,0);
+				scene.add(axis);
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			var radius = 600;
+
+			var prevTime = Date.now();
+
+			function render() {
+
+				//camera.lookAt( camera.target );
+
+				if ( animation ) {
+
+					var time = Date.now();
+
+					animation.update( time - prevTime );
+
+					prevTime = time;
+
+				}
+
+				renderer.render( scene, camera );
+
+			}
+
+			document.onkeydown = function (e) {
+
+				var key = e.keyCode;
+				console.log(key);
+
+				// 十字キー
+				switch(e.which){
+     
+				    case KEY_CODE.RIGHT:
+				     camera.position.x += 5;
+				     render();
+				     break;
+				     
+				    case KEY_CODE.LEFT:
+				     camera.position.x -= 5;
+				     render();
+				     break;
+				      
+				    case KEY_CODE.UP:
+				     camera.position.z -= 5;
+				     render();
+				     break;
+				      
+				    case KEY_CODE.DOWN:
+				     camera.position.z += 5;
+				     render();
+				     break;
+				 }
+
+			}
+		</script>
+
+	</body>
+</html>
