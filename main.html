@@ -23,17 +23,37 @@
 				border: 1px solid #000;
 				background-color: #ccc;
 			}
+			#status h1 {
+				font-size: 1.2em;
+			}
+			#status ul {
+				padding: 0;
+			}
+			#status ul li {
+				list-style-type: none;
+				margin: 10px;
+			}
 
 		</style>
 	</head>
 	<body>
 
 		<div id="status">
-			<p>ステータス</p>
-			<div class="name">馬</div>
-			<div class="mood"></div>
-			<div class="hunger"></div>
-			<div class="user_info"></div>
+
+			<h1>ペットのステータス</h2>
+			<ul>
+				<li>ペットの名前: <span id="pet_name"></span></li>
+				<li>機嫌: <span id="mood"></span></li>
+				<li>満腹度: <span id="hunger"></span></li>
+			</ul>
+			
+			<h1>飼い主情報</h1>
+			<ul>
+				<li>飼い主の名前: <span id="user_name"></span></li>
+				<li>検索ワード: <span id="search_word"></span></li>
+				<li>現在地: <span id="present_location"></span></li>
+			</ul>
+
 		</div>
 
 
