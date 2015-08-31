@@ -9,10 +9,10 @@
 		<script src="js/TrackballControls.js"></script>
 		<script src="js/Detector.js"></script>
 
-		<script src="js/status.js"></script>
+		<script src="js/main.js"></script>
 		<style>
 			body {
-				font-family: Monospace;
+				font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, sans-serif;
 				background-color: #f0f0f0;
 				margin: 0px;
 				overflow: hidden;
@@ -24,9 +24,10 @@
 				width: 30%;
 				padding: 10px;
 				border: 1px solid #000;
-				background-color: #ccc;
+				background-color: #fff;
+				opacity: 0.8;
 			}
-			#status h1 {
+			#status p {
 				font-size: 1.2em;
 			}
 			#status ul {
@@ -34,31 +35,45 @@
 			}
 			#status ul li {
 				list-style-type: none;
-				margin: 10px;
+				margin: 5px;
 			}
-
+			#pet_talk {
+				position: absolute;
+				top:100px;
+				right:10px;
+				padding: 10px;
+				border: 1px solid #000;
+				background-color: #fff;
+				opacity: 0.8;
+				border-radius: 10px;
+			}
 		</style>
 	</head>
 	<body>
-
+		<!-- ステータス画面 -->
 		<div id="status">
 
-			<h1>ペットのステータス</h2>
+			<p>ペットのステータス</p>
 			<ul>
 				<li>ペットの名前: <span id="pet_name"></span></li>
 				<li>機嫌: <span id="mood"></span></li>
 				<li>満腹度: <span id="hunger"></span></li>
 			</ul>
 			
-			<h1>飼い主情報</h1>
+			<p>飼い主情報</p>
 			<ul>
 				<li>飼い主の名前: <span id="user_name"></span></li>
 				<li>検索ワード: <span id="search_word"></span></li>
 				<li>現在地: <span id="present_location"></span></li>
 			</ul>
-
+			<small>horse model by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a></small>
 		</div>
 
+		<!-- ペットの会話用ふきだし -->
+		<div id="pet_talk">
+			<p id="pet_remark"></p>
+			<div id="pet_search_box"></div>
+		</div>
 
 		<script>
 
@@ -85,6 +100,7 @@
 				
 				//
 
+				// カメラ
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
 				camera.position.x = 0;
 				camera.position.y = 200;
@@ -93,9 +109,30 @@
 				camera.target = new THREE.Vector3( 0, 150, 0 );
 
 				scene = new THREE.Scene();
+				scene.fog = new THREE.FogExp2( 0x00b9ef, 0.001 );
 
 				//
 
+				// マウスのトラックボールのコントロール
+				controls = new THREE.TrackballControls( camera );
+
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+
+				controls.noZoom = false;
+				controls.noPan = false;
+
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+
+				controls.keys = [ 65, 83, 68 ];
+
+				controls.addEventListener( 'change', render );
+
+				//
+
+				// ライト
 				var light = new THREE.DirectionalLight( 0xefefff, 2 );
 				light.position.set( 1, 1, 1 ).normalize();
 				light.castShadow = true;
@@ -112,6 +149,9 @@
 				light.shadowMapDarkness = 0.95;
 				scene.add( light );
 
+				//
+
+				// ペットモデルの読み込み
 				var loader = new THREE.JSONLoader( true );
 				loader.load( "js/horse.js", function( geometry ) {
 
@@ -143,9 +183,17 @@
 
 				//
 
+				// 座標軸表示
+				var axis = new THREE.AxisHelper(1000);
+				axis.position.set(0,0,0);
+				scene.add(axis);
+
+				//
+
+				// レンダリング
 				renderer = new THREE.WebGLRenderer();
 				renderer.shadowMapEnabled = true;
-				renderer.setClearColor( 0xf0f0f0 );
+				renderer.setClearColor( 0x00b9ef );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild(renderer.domElement);
@@ -160,13 +208,6 @@
 
 				//
 
-				// 座標軸表示
-				var axis = new THREE.AxisHelper(1000);
-				axis.position.set(0,0,0);
-				scene.add(axis);
-
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
 
 			}
@@ -175,6 +216,8 @@
 
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
+
+				controls.handleResize();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -188,6 +231,7 @@
 
 				render();
 				stats.update();
+				controls.update();
 
 			}
 
@@ -213,6 +257,7 @@
 
 			}
 
+			// キーボードのキーが押された時
 			document.onkeydown = function (e) {
 
 				var key = e.keyCode;
