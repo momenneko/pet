@@ -6,6 +6,9 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<script src="js/three.min.js"></script>
 		<script src="js/stats.min.js"></script>
+		<script src="js/TrackballControls.js"></script>
+		<script src="js/Detector.js"></script>
+
 		<script src="js/status.js"></script>
 		<style>
 			body {
@@ -58,6 +61,9 @@
 
 
 		<script>
+
+			// WebGL未サポートブラウザへの対応
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var container, stats;
 			var camera, scene, projector, renderer;
