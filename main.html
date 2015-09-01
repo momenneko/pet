@@ -105,7 +105,7 @@
 				camera.position.set(0,200,600);
 
 				// カメラ追従
-				//camera.target = new THREE.Vector3( 0, 150, 0 );
+				camera.target = new THREE.Vector3( 0, 150, 0 );
 
 				//
 
@@ -140,13 +140,15 @@
 
 				// ライト
 
+				scene.add( new THREE.AmbientLight( 0x777777 ) );
+
 				var light = new THREE.DirectionalLight( 0xffefef, 2 );
 				light.position.set(200,250,500);
 				light.castShadow = true;
 				light.shadowMapWidth = 1024;
 				light.shadowMapHeight = 1024;
 				light.shadowMapDarkness = 0.95;
-				light.shadowCameraVisible = true;
+				//light.shadowCameraVisible = true;
 
 				scene.add( light );
 
@@ -262,36 +264,32 @@
 			document.onkeydown = function (e) {
 
 				var key = e.keyCode;
-				console.log(key);
+				//console.log(key);
 
 				// 十字キー
 				switch(e.which){
      
 				    case KEY_CODE.RIGHT:
-				     camera.position.x += 5;
-				     console.log("x:" + camera.position.x);
-				     console.log("z:" + camera.position.z);
+				     camera.position.x += 3;
+				     controls.target.x += 3;
 				     render();
 				     break;
 				     
 				    case KEY_CODE.LEFT:
-				     camera.position.x -= 5;
-				     console.log("x:" + camera.position.x);
-				     console.log("z:" + camera.position.z);
+				     camera.position.x -= 3;
+				     controls.target.x -= 3;
 				     render();
 				     break;
 				      
 				    case KEY_CODE.UP:
-				     camera.position.z -= 5;
-				     console.log("x:" + camera.position.x);
-				     console.log("z:" + camera.position.z);
+				     camera.position.z -= 3;
+				     controls.target.z -= 3;
 				     render();
 				     break;
 				      
 				    case KEY_CODE.DOWN:
-				     camera.position.z += 5;
-				     console.log("x:" + camera.position.x);
-				     console.log("z:" + camera.position.z);
+				     camera.position.z += 3;
+				     controls.target.z -= 3;
 				     render();
 				     break;
 				 }
