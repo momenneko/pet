@@ -1,3 +1,7 @@
+// 書き換える
+var consumerKey_twitter = 'KEY';
+var consumerSecret_twitter = 'SECRET';
+
 var passport = require('passport'),
     TwitterStrategy = require('passport-twitter').Strategy;
 var mongo = require('./mongo');
@@ -11,8 +15,8 @@ passport.deserializeUser(function(obj, done) {
 
 // twitter認証
 passport.use(new TwitterStrategy({
-    consumerKey:  'gtrtkkN29QfYuPUiIsgmeJdpR',
-    consumerSecret: 'EVXftLchDB2AulWdZcHcMO5KKunlnNDzOLC7PqdErztuWxvGOd',
+    consumerKey:  consumerKey_twitter,
+    consumerSecret: consumerSecret_twitter,
     callbackURL: 'http://localhost:3000/auth/twitter/callback'
   },
   function(token, tokenSecret, profile, done) {
