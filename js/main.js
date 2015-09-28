@@ -8,8 +8,8 @@ window.onload = function() {
 	var pet_talk = document.getElementById('pet_talk');
 	var pet_remark = document.getElementById('pet_remark');
 	var pet_search_box = document.getElementById('pet_search_box');
-	statusInit();
-	petTalkInit();
+	//statusInit();
+	//petTalkInit();
 }
 
 // ステータスの初期化
