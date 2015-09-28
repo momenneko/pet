@@ -1,0 +1,33 @@
+{
+  "name": "pet",
+  "version": "0.0.1",
+  "description": "you can have a pet on the web browser",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/momenneko/pet.git"
+  },
+  "keywords": [
+    "pet"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/momenneko/pet/issues"
+  },
+  "homepage": "https://github.com/momenneko/pet",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "date-utils": "^1.2.17",
+    "ejs": "^2.3.4",
+    "express": "^4.13.3",
+    "express-session": "^1.11.3",
+    "mongodb": "^2.0.43",
+    "passport": "^0.3.0",
+    "passport-local": "^1.0.0",
+    "passport-twitter": "^1.0.3"
+  }
+}

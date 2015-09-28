@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>ペット作成</title>
+</head>
+<body>
+	<p>ログインしました(ID: <%= userid %>)</p>
+	<p>ペットを作成しましょう</p>
+	<h1>ペット登録ページ</h1>
+
+	<form method="post" action="./register">
+	<input type="text" name="username" placeholder="ユーザー名">
+	<input type="text" name="petname" placeholder="ペット名">
+	<input type="text" name="modelNo" placeholder="モデルの番号">
+	<input type="submit" value="作成">
+
+	<p><a href="/logout">ログアウトする</a></p>
+</body>
