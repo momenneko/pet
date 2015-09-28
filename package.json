@@ -18,5 +18,14 @@
   "bugs": {
     "url": "https://github.com/momenneko/pet/issues"
   },
-  "homepage": "https://github.com/momenneko/pet"
+  "homepage": "https://github.com/momenneko/pet",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "express": "^4.13.3",
+    "express-session": "^1.11.3",
+    "mongodb": "^2.0.43",
+    "passport": "^0.3.0",
+    "passport-local": "^1.0.0",
+    "passport-twitter": "^1.0.3"
+  }
 }
