@@ -24,6 +24,10 @@ app.get('/', function(req, res) {
 	res.render('index');
 });
 
+// sign up
+app.get('/signup', function(req, res) {
+	res.render('signup');
+});
 // loginページ
 app.get('/login', function(req, res) {
 	res.render('login');
@@ -48,8 +52,8 @@ app.post('/register', function(req, res) {
 			  mood: '100',
 			  hungry: '100',
 			  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
-			  sleepTime: '600',
-			  wakeupTime: '2000' 
+			  sleepTime: '2000',
+			  wakeupTime: '600' 
 			}
 		}, {upsert:true}, function() {
 		res.render('register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
@@ -78,9 +82,30 @@ app.get('/userpage', function(req, res) {
 		});
 	} else { // ログインしていないとき
 		res.redirect('/login');
-    }   
-})
+    }
+});
 
+// local認証
+app.post('/locallogin',
+  passport.authenticate('local', { successRedirect: '/userpage',
+                                   failureRedirect: '/login',
+                                   failureFlash: false })
+);
+// local新規登録
+app.post('/localsignup',function(req, res) {
+	console.log(req.body.userid);
+	console.log('mongo')
+	mongo.users.count({userid: req.body.userid}, function(err, length) {
+		if(length === 0) {
+			mongo.users.insert({userid: req.body.userid, password: req.body.userid});
+			res.render('localregister');
+		} else {
+			// 同じIDが登録されている時
+			console.log("同じIDなので登録できませんでした");
+			res.render('login');
+		}
+	});
+});
 // twitter認証
 app.get('/auth/twitter', passport.authenticate('twitter'));
 

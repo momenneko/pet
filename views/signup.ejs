@@ -2,14 +2,14 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
-	<title>ログイン</title>
+	<title>サインアップ</title>
 </head>
 <body>
-	<h1>ログイン</h1>
+	<h1>サインアップ</h1>
 	<p>Twitterでログインする</p>
 	<p><a href="/auth/twitter">Sign in with Twitter</a></p>
-	<P>ID&passwordでログイン</p>
-	<form action="/locallogin" method="post">
+	<P>IDpasswordで新規登録</p>
+	<form action="/localsignup" method="post">
     <div>
         <label>Userid:</label>
         <input type="text" name="userid"/>
@@ -19,7 +19,7 @@
         <input type="password" name="password"/>
     </div>
     <div>
-        <input type="submit" value="Log In"/>
+        <input type="submit" value="Sign up"/>
     </div>
 </form>
 	<p></p>
