@@ -8,20 +8,20 @@
 	<h1>サインアップ</h1>
 	<p>Twitterでログインする</p>
 	<p><a href="/auth/twitter">Sign in with Twitter</a></p>
-	<P>IDpasswordで新規登録</p>
+	<P>IDpasswordで新規登録(passwordは半角英数字8文字以上32文字以内)</p>
 	<form action="/localsignup" method="post">
     <div>
         <label>Userid:</label>
-        <input type="text" name="userid"/>
+        <input type="text" name="userid" required>
     </div>
     <div>
         <label>Password:</label>
-        <input type="password" name="password"/>
+        <input type="password" name="password" required>
     </div>
     <div>
-        <input type="submit" value="Sign up"/>
+        <input type="submit" value="Sign up">
     </div>
 </form>
-	<p></p>
+	<p><a href="/">INDEX</a></p>
 </body>
 </html>
