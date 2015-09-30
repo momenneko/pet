@@ -7,7 +7,7 @@ var fs = require('fs');
 var app = express();
 var passport = require('./passport').passport;
 var mongo = require('./mongo');
-
+var re_pass = /^[a-z\d]{8,100}$/i;
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -94,17 +94,32 @@ app.post('/locallogin',
 // local新規登録
 app.post('/localsignup',function(req, res) {
 	console.log(req.body.userid);
-	console.log('mongo')
-	mongo.users.count({userid: req.body.userid}, function(err, length) {
-		if(length === 0) {
-			mongo.users.insert({userid: req.body.userid, password: req.body.userid});
-			res.render('localregister');
-		} else {
-			// 同じIDが登録されている時
-			console.log("同じIDなので登録できませんでした");
-			res.render('login');
-		}
-	});
+	console.log('mongo');
+	// idが空白
+	if(req.body.userid === '') {
+		console.log('idが空白');
+		res.render('signup');
+	} else {
+		mongo.users.count({userid: req.body.userid}, function(err, length) {
+			if(length === 0) { //IDがかぶらない
+				if(re_pass.exec(req.body.password)) {
+					// パスワードOK
+					mongo.users.insert({userid: req.body.userid, password: req.body.password});
+					res.render('localregister');
+				} else {
+					// パスワードNG
+					console.log('パスワードNG');
+					res.render('signup');
+				}
+				
+			} else {
+				// 同じIDが登録されている時
+				console.log('同じIDなので登録できませんでした');
+				console.log(length)
+				res.render('signup');
+			}
+		});
+	}
 });
 // twitter認証
 app.get('/auth/twitter', passport.authenticate('twitter'));
