@@ -7,7 +7,9 @@ var fs = require('fs');
 var app = express();
 var passport = require('./passport').passport;
 var mongo = require('./mongo');
-var re_pass = /^[a-z\d]{8,100}$/i;
+
+// パスワードの正規表現
+var re_pass = /^[a-z\d]{8,32}$/i;
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -40,24 +42,29 @@ app.get('/logout', function(req, res){
 });
 
 // ペットを登録する(userpageから飛ぶ)
-app.post('/register', function(req, res) {
-	var dt = new Date();
-	mongo.users.update(
-		{ userid: req.user },
-		{$set: 
-			{ username: req.body.username,
-			  petname: req.body.petname,
-			  petFlag: '1',
-			  modelNo: req.body.modelNo,
-			  mood: '100',
-			  hungry: '100',
-			  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
-			  sleepTime: '2000',
-			  wakeupTime: '600' 
-			}
-		}, {upsert:true}, function() {
-		res.render('register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
-	});
+app.post('/pet_register', function(req, res) {
+	if(req.body.username != '' && req.body.petname != '' && req.body.modelNo != '') {
+		var dt = new Date();
+		mongo.users.update(
+			{ userid: req.user },
+			{$set: 
+				{ username: req.body.username,
+				  petname: req.body.petname,
+				  petFlag: '1',
+				  modelNo: req.body.modelNo,
+				  mood: '100',
+				  hungry: '100',
+				  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
+				  sleepTime: '2000',
+				  wakeupTime: '600' 
+				}
+			}, {upsert:true}, function() {
+			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
+		});
+	} else {
+		// 未入力の項目があるとき
+		res.render('pet_create', {userid: req.user});
+	}
 });
 
 // ユーザーのメインページ
@@ -67,7 +74,7 @@ app.get('/userpage', function(req, res) {
 		mongo.users.findOne({userid: req.user}, function(err, item) {
 			if(item.petFlag === undefined) {
 				// ペットがまだ作られていないとき、登録ページへ飛ぶ
-				res.render('create', {userid : req.user });
+				res.render('pet_create', {userid : req.user });
 			} else {
 				res.render(
 					'userpage',
@@ -94,7 +101,7 @@ app.post('/locallogin',
 // local新規登録
 app.post('/localsignup',function(req, res) {
 	console.log(req.body.userid);
-	console.log('mongo');
+	console.log(req.body);
 	// idが空白
 	if(req.body.userid === '') {
 		console.log('idが空白');
@@ -105,7 +112,7 @@ app.post('/localsignup',function(req, res) {
 				if(re_pass.exec(req.body.password)) {
 					// パスワードOK
 					mongo.users.insert({userid: req.body.userid, password: req.body.password});
-					res.render('localregister');
+					res.render('local_idpass_register');
 				} else {
 					// パスワードNG
 					console.log('パスワードNG');
