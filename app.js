@@ -81,6 +81,7 @@ app.get('/userpage', function(req, res) {
 				// ペットがまだ作られていないとき、登録ページへ飛ぶ
 				res.render('pet_create', {userid : req.user });
 			} else {
+
 				res.render(
 					'userpage',
 					{
@@ -97,6 +98,42 @@ app.get('/userpage', function(req, res) {
     }
 });
 
+// アカウント設定
+app.get('/setting', function(req, res) {
+	if(req.user){
+		mongo.users.findOne({userid: req.user}, function(err, item) {	
+			res.render(
+				'setting',
+				{
+					username: item.username,
+					petname: item.petname
+				}
+			);
+		});
+	} else { // ログインしていないとき
+		res.redirect('/login');
+    }
+});
+
+app.post('/setting_edit', function(req, res) {
+	if(req.body.username != '' && req.body.petname != '') {
+		mongo.users.update(
+			{ userid: req.user },
+			{$set: 
+				{ username: req.body.username,
+				  petname: req.body.petname
+				}
+			},
+			{upsert: true},
+			function() {
+				res.render('setting_edit', { username: req.body.username, petname: req.body.petname});
+			}
+		);
+	} else {
+		// 未入力の項目があるとき
+		res.render('/setting', { username: item.username, petname: item.petname});
+	}
+});
 // local認証
 app.post('/locallogin',
   passport.authenticate('local', { successRedirect: '/userpage',
