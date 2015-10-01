@@ -3,6 +3,7 @@ var session = require('express-session');
 var bodyParser = require('body-parser');
 var dateutils = require('date-utils');
 var fs = require('fs');
+var crypto = require('crypto');
 
 var app = express();
 var passport = require('./passport').passport;
@@ -10,6 +11,10 @@ var mongo = require('./mongo');
 
 // パスワードの正規表現
 var re_pass = /^[a-z\d]{8,32}$/i;
+
+// local認証のパスワード暗号化キー
+var secretkey = 'tesspassword';
+var cipher = crypto.createCipher('aes192', secretkey);
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -111,7 +116,10 @@ app.post('/localsignup',function(req, res) {
 			if(length === 0) { //IDがかぶらない
 				if(re_pass.exec(req.body.password)) {
 					// パスワードOK
-					mongo.users.insert({userid: req.body.userid, password: req.body.password});
+					// パスワード暗号化
+					cipher.update(req.body.password, 'utf8', 'hex');
+					var cipheredPass = cipher.final('hex');
+					mongo.users.insert({userid: req.body.userid, password: cipheredPass});
 					res.render('local_idpass_register');
 				} else {
 					// パスワードNG
