@@ -5,7 +5,12 @@ var consumerSecret_twitter = 'EVXftLchDB2AulWdZcHcMO5KKunlnNDzOLC7PqdErztuWxvGOd
 var passport = require('passport'),
     TwitterStrategy = require('passport-twitter').Strategy,
     LocalStrategy = require('passport-local').Strategy;
+var crypto = require('crypto');
+
 var mongo = require('./mongo');
+
+var secretkey = 'tesspassword';
+var cipher = crypto.createCipher('aes192', secretkey);
 
 passport.serializeUser(function(userid, done) {
     console.log('serialize');
@@ -36,7 +41,9 @@ passport.use(new LocalStrategy(
                 return done(null, false, { message: 'Incorrect userid.' });
             }
             console.log('userはいる');
-            if (password != user.password) {
+            cipher.update(password, 'utf8', 'hex');
+            var cipheredPass = cipher.final('hex');
+            if (cipheredPass != user.password) {
                 console.log('password が違う');
                 return done(null, false, { message: 'Incorrect password.' });
             }
