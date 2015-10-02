@@ -114,7 +114,7 @@
 		<ul>
 			<li>ペットの名前: <%= petname %></li>
 			<li>機嫌: <%= mood %></li>
-			<li>満腹度: <%= hungry %></li>
+			<li>満腹度: <%= hungry %><p id="hungry"></p></li>
 		</ul>
 		
 		<p>ユーザー情報</p>
@@ -126,12 +126,12 @@
 		</ul>
 		<p><a href="/logout">ログアウト</a></p>
 		<p><a href="/setting">アカウント設定</a></p>
+		<button onclick="hungry()">えさ</button>
 	</div>
 
 	<!-- ペットの会話用ふきだし -->
 	<div id= "pet_baloon"></div>
 	
-
 	<div id="pet_talk">
 		<p id="pet_remark">何について調べますか？</p>
 			<div id="cse">
@@ -185,13 +185,18 @@ window.addEventListener("load", function () {
 	});
 		//検索ボタン
 	$(".gsc-search-button").click(function (){
+		console.log($("#gsc-i-id1").val());
 		message_balloon($("#gsc-i-id1")[0].value + "");
 		onSearch();
         setTimeout('b_2()',1000);
 	});
 });
 
-
+function hungry() {
+	console.log('esa');
+	var id = $("#userid")[0].innerHTML;
+	socket.emit("hungry", id);
+}
 init();
 animate();
 startListen();

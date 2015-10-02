@@ -218,7 +218,7 @@ io.sockets.on("connection", function (socket) {
   socket.on("send_word",function (data,id) {
     console.log("on send_word "+id+" data"+ data);
     //console.log(history[0]);
-    	/*
+    /*
     	mongo.users.find({userid: id},function (err,length) {
 	    	console.log(item.history[0]);
 	    	if(length === 0) {
@@ -240,31 +240,34 @@ io.sockets.on("connection", function (socket) {
 		    }
 		});
 
-		*/
-		/*
-	    mongo.users.count({userid: id, history.word: data},function (err,length) {
+	*/
+		
+	    mongo.users.count({userid: id, "history.word": data},function (err,length) {
 	    	//console.log(item.history[0]);
 	    	if(length === 0) {
+	    		// 新しく検索したワード
 		    	mongo.users.update(
 		    		{ userid: id },
 		    		{$push: 
 		    			{ history : {word : data , num : 1}				  
-		    		}
-		    	}, {upsert:true});
+		    		}}
+		    	);
 		    } else {
-		    	mongo.users.find({userid: id},function (err, item) {
-			    	mongo.users.update(
-			    		{ userid: id },
-			    		{$push: 
-			    			{ history.word : data} , { $inc: {num : 1}}				  
-			    		}
-			    	}, {upsert:true});
-			    });
+		    	// すでに検索したことのあるワード
+		    	mongo.users.update(
+		    		{ userid: id, "history.word": data},
+		    		{$inc: 
+		    			{"history.$.num" : 1}			  
+		    		}
+		    	);
 		    }
 		});
-*/
-
-    });
+	});
     
-
+    socket.on("hungry",function (id) {
+    	mongo.users.update(
+			{ userid: id },
+			{$inc:{ hungry: 50 }}
+		);
+    });
 });
