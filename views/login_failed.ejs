@@ -2,15 +2,16 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
-	<title>サインアップ</title>
+	<title>ログイン</title>
 </head>
 <body>
-	<h1>サインアップ</h1>
+	<h1>ログイン</h1>
+    <h2><strong><a href="/signup">登録はこちら</a></strong></h2>
 	<p>Twitterでログインする</p>
 	<p><a href="/auth/twitter">Sign in with Twitter</a></p>
-	<P>IDpasswordで新規登録(passwordは半角英数字8文字以上32文字以内)</p>
-    <%= err_message %>
-	<form action="/localsignup" method="post">
+	<P>ID&passwordでログイン</p>
+    <p>ログインに失敗しました</p>
+	<form action="/locallogin" method="post">
     <div>
         <label>Userid:</label>
         <input type="text" name="userid" required>
@@ -20,7 +21,7 @@
         <input type="password" name="password" required>
     </div>
     <div>
-        <input type="submit" value="Sign up">
+        <input type="submit" value="Log In">
     </div>
 </form>
 	<p><a href="/">INDEX</a></p>

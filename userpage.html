@@ -8,7 +8,31 @@
 	<script src="/js/TrackballControls.js"></script>
 	<script src="/js/Detector.js"></script>
 	<script src="/js/Projector.js"></script>
-	<script src="../pet_talk.js"></script>
+	<script src="./userpage.js"></script>
+	<script src="/js/position.js"></script>
+	<script src="/js/jquery-1.11.3.min.js"></script>
+	<script src="/js/jquery.balloon.js"></script>
+	<script src="https://www.google.com/jsapi" type="text/javascript"></script>
+	  <script type="text/javascript">
+	    // Load the Search API
+	    google.load('search', '1');
+
+	    // Set a callback to load the Custom Search Element when you page loads
+	    google.setOnLoadCallback(
+	      function(){
+	        var customSearchControl = new google.search.CustomSearchControl('013236806639015361436:jiaaode1dms');
+
+	        // Use "mysite_" as a unique ID to override the default rendering.
+	        google.search.Csedr.addOverride("mysite_");
+
+	        // Draw the Custom Search Control in the div named "CSE"
+	        customSearchControl.draw('cse');
+
+	        // Execute an initial search
+	        customSearchControl.execute();
+	      },
+	    true);
+	  </script>
 	<title>ホーム</title>
 	<style>
 		body {
@@ -47,6 +71,39 @@
 			opacity: 0.8;
 			border-radius: 10px;
 		}
+		#pet_baloon {
+			position: absolute;
+			top:120px;
+			right:450px;
+			padding: 10px;
+			border: 1px solid #000;
+			background-color: #fff;
+			opacity: 0;
+			border-radius: 10px;
+		}
+		#pet_talk {
+			position: absolute;
+			top:100px;
+			right:10px;
+			padding: 10px;
+			border: 1px solid #000;
+			background-color: #fff;
+			opacity: 0.8;
+			border-radius: 10px;
+		}
+    	
+	    #cse {
+	      width:15em;
+	      height:10em;
+	      z-index: 200;
+	      overflow:scroll;
+	    }
+	    .gsc-control-cse {
+			z-index: 200;
+	    }
+	    .gsc-control-cse-ja {
+		z-index: 200;
+	    }
 	</style>
 </head>
 <body>
@@ -71,12 +128,37 @@
 	</div>
 
 	<!-- ペットの会話用ふきだし -->
+	<div id= "pet_baloon"></div>
+	
+
+	<div id="pet_talk">
+		<p id="pet_remark">何について調べますか？</p>
+		<input type="submit" value="作成">
+			<div id="cse">
+			  <script>
+			  (function c_search() {
+			    var cx = '013236806639015361436:jiaaode1dms';
+			    var gcse = document.createElement('script');
+			    gcse.type = 'text/javascript';
+			    gcse.async = true;
+			    gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') +
+			        '//cse.google.com/cse.js?cx=' + cx;
+			    var s = document.getElementsByTagName('script')[0];
+			    s.parentNode.insertBefore(gcse, s);
+			  })();
+			  </script>
+			  <gcse:search></gcse:search>
+			</div>
+		
+  	</div>	
+
+	<!--
 	<div id="pet_talk">
 		<p><%= remark %></p>
 		<p id="r"></p>
 		<div id="pet_search_box"><input type="text" name="pet_search_word" size="50" value=""><br><input type="submit" value="検索"></div>
 	</div>
-
+	-->
 	<script>
 	// WebGL未サポートブラウザへの対応
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -90,34 +172,35 @@ var KEY_CODE = {
 	LEFT: 37,
 	RIGHT: 39
 };
-
+var mouseXY =[0,0];
 init();
 animate();
+startListen();
 
 function init() {
-
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
 	
 	//
-
+	
 	// カメラ
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set(0,200,600);
+	camera.position.set(600,400,0);
 
 	// カメラ追従
 	camera.target = new THREE.Vector3( 0, 150, 0 );
 
 	//
-
+	
 	scene = new THREE.Scene();
 	scene.fog = new THREE.FogExp2( 0x00b9ef, 0.0008 );
 
 	//
-
+	
 	// マウスのトラックボールのコントロール
+	
 	controls = new THREE.TrackballControls( camera );
-
+	
 	controls.rotateSpeed = 1.0;
 	controls.zoomSpeed = 1.2;
 	controls.panSpeed = 0.8;
@@ -127,7 +210,7 @@ function init() {
 	
 	controls.minDistance = 200;
 	controls.maxDistance = 1000;
-
+	
 	controls.target = new THREE.Vector3(0, 100, 100);
 
 	controls.staticMoving = true;
@@ -136,7 +219,7 @@ function init() {
 	controls.keys = [ 65, 83, 68 ];
 
 	controls.addEventListener( 'change', render );
-
+	
 	//
 
 	// ライト
@@ -154,7 +237,8 @@ function init() {
 	scene.add( light );
 
 	//
-
+	
+	
 	// ペットモデルの読み込み
 	var loader = new THREE.JSONLoader( true );
 	loader.load( "/model_json/animal1.json", function( geometry ) {
@@ -170,7 +254,7 @@ function init() {
 		animation.play();
 
 	} );
-
+	
 
 	//
 
@@ -213,7 +297,6 @@ function init() {
 	container.appendChild( stats.domElement );
 
 	//
-
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
@@ -230,16 +313,70 @@ function onWindowResize() {
 }
 
 //
-
 function animate() {
 
 	requestAnimationFrame( animate );
 
 	render();
 	stats.update();
-	controls.update();
+	
+	/*
+		if(timer_count == 0) {
+			timer_start(1)
+			$("#gsc-i-id1").keyup(function(event){
+				if(event.keyCode == 13){
+				    message_balloon($("#gsc-i-id1")[0].value + "！");
+				    console.log("puuu1111");
+			    }
+			});
+				//検索ボタン
+			$(".gsc-search-button").click(function (){
+
+				message_balloon($("#gsc-i-id1")[0].value + "");
+				        console.log("puuu");
+			});
+		}
+	*/
+
+
+		//検索でEnter
+	$("#gsc-i-id1").keyup(function(event){
+		if(event.keyCode == 13){
+		    message_balloon($("#gsc-i-id1")[0].value + "！");
+		    keyword_insert_db($("#gsc-i-id1")[0].value);
+		    setTimeout('b_2()',2000);		    
+		    //console.log("puuu1111");
+	    }
+	});
+		//検索ボタン
+	$(".gsc-search-button").click(function (){
+
+		message_balloon($("#gsc-i-id1")[0].value + "");
+		       // console.log("puuu");
+		        setTimeout('b_2',1000);
+	});
+
+	if(!checkMouseOnElement(mouseXY,"cse")) {
+		controls.enabled = true;
+		controls.update();
+	}else {
+		controls.enabled = false;
+		//message_balloon("てすと！");
+	}
+	//console.log("anim");
+}
+
+function onSearch() {
+	var input = $("#gsc-i-id1")[0].value;
 
 }
+
+
+
+/*
+<input autocomplete="off" type="text" size="10" class=" gsc-input " name="search" title="検索" id="gsc-i-id1" dir="ltr" spellcheck="false" style="outline: none; background: rgb(255, 255, 255);">
+<input type="button" value="検索" class="gsc-search-button" title="検索">
+*/
 
 var radius = 600;
 
@@ -247,7 +384,7 @@ var prevTime = Date.now();
 
 function render() {
 
-	//camera.lookAt( camera.target );
+	camera.lookAt( camera.target );
 
 	if ( animation ) {
 
@@ -256,6 +393,35 @@ function render() {
 		animation.update( time - prevTime );
 
 		prevTime = time;
+
+
+		var max = 96;
+
+		var min = max * (-1);
+
+		var rotate = 24;
+
+		if((mesh.rotation.y % (Math.PI * 2)) < 0.0000000000001 || Math.abs((mesh.rotation.y % (Math.PI * 2)) - (Math.PI * 2)) < 0.0000000000001) {
+
+			mesh.position.z++;
+
+			if(mesh.rotation.y != 0) mesh.rotation.y = 0;
+
+		} else if(Math.abs(((mesh.rotation.y % (Math.PI * 2)) - Math.PI)) < 0.0000000000001) {
+
+			mesh.position.z--;
+
+			if(mesh.rotation.y != Math.PI) mesh.rotation.y = Math.PI;
+
+		}
+
+		if(mesh.position.z == max || mesh.position.z == min) {
+
+			mesh.rotation.y += Math.PI / rotate;
+
+		}
+
+
 
 	}
 
@@ -297,6 +463,59 @@ document.onkeydown = function (e) {
 	     break;
 	 }
 
-}</script>
+}
+
+
+function MouseMove00Func(e){
+
+	// スクロール位置を取得
+	var scroll_pos = DocumentGetScrollPosition(document);
+	
+	mouseXY = [e.clientX + scroll_pos.x,e.clientY + scroll_pos.y];
+	//console.log(checkMouseOnElement(mouseXY,"cse"));
+}
+
+// イベントのリッスンを開始する
+function startListen() {
+	if(document.addEventListener){
+
+		// マウスを移動するたびに実行されるイベント
+		document.addEventListener("mousemove" , MouseMove00Func);
+		
+	// アタッチイベントに対応している
+	}else if(document.attachEvent){
+
+		// マウスを移動するたびに実行されるイベント
+		document.attachEvent("onmousemove" , MouseMove00Func);	
+	}
+}
+
+function message_balloon(str) {
+			$("#pet_baloon").showBalloon({
+				contents: str+"<br /><br /><input type='button' value='閉じる' onclick='b_2()'/>",
+				position: "right",
+				offsetX: 0,
+				offsetY: 0,
+				tipSize: 20,
+				css: {
+					border: "solid 5px #000",
+					color: "#000",
+					fontWeight: "bold",
+					fontSize: "20px",
+					background: "url(https://lh5.googleusercontent.com/-vTfpmoECckg/T0odv9K_VbI/AAAAAAAAE4w/Mv9xb2tGomo/s200/_img.png) no-repeat",
+					width: "100px",
+					height: "70px",
+					borderRadius: "20px",
+					opacity: "1",
+					padding: "10px 20px 10px 20px"
+				}
+			});
+		}
+
+function b_2( ) {
+	try{$("#pet_baloon").hideBalloon();}catch(e){}
+}
+
+</script>
 </body>
 </html>
