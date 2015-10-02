@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>アカウント設定</title>
+</head>
+<body>
+	<h1>アカウント設定</h1>
+	
+	<form method="post" action="./setting_edit">
+	<div>
+	<label>ユーザー名</label>
+		<input type="text" name="username" value=<%= username %> required>
+	</div>
+	<div>
+		<label>ペット名</label>
+		<input type="text" name="petname" value=<%= petname %> required>
+	</div>
+	<div>
+		<input type="submit" value="設定">		
+	</div>
+
+
+	<p><a href="/logout">ログアウトする</a></p>
+</body>

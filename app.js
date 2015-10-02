@@ -8,6 +8,7 @@ var crypto = require('crypto');
 var app = express();
 var passport = require('./passport').passport;
 var mongo = require('./mongo');
+var pettalk = require('./pet_talk');
 
 // パスワードの正規表現
 var re_pass = /^[a-z\d]{8,32}$/i;
@@ -61,7 +62,8 @@ app.post('/pet_register', function(req, res) {
 				  hungry: '100',
 				  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
 				  sleepTime: '2000',
-				  wakeupTime: '600' 
+				  wakeupTime: '600' ,
+				  remark: ['よろしくね', 'おはよう', 'おやすみ']
 				}
 			}, {upsert:true}, function() {
 			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
@@ -81,15 +83,25 @@ app.get('/userpage', function(req, res) {
 				// ペットがまだ作られていないとき、登録ページへ飛ぶ
 				res.render('pet_create', {userid : req.user });
 			} else {
+				var i = 0;
+				setInterval(function() {
+					pettalk.update(item.remark[i]);
+					i++;
+					if(i > 4) i %= 5;
+				}, 1000);
+				/*
 				res.render(
 					'userpage',
 					{
 						username: item.username,
 						petname: item.petname,
 						mood: item.mood,
-						hungry: item.hungry
+						hungry: item.hungry,
+						remark: item.remark[0]
 					}
 				);
+*/
+				res.sendfile(__dirname + '/userpage.html')
 			}
 		});
 	} else { // ログインしていないとき
@@ -97,6 +109,42 @@ app.get('/userpage', function(req, res) {
     }
 });
 
+// アカウント設定
+app.get('/setting', function(req, res) {
+	if(req.user){
+		mongo.users.findOne({userid: req.user}, function(err, item) {	
+			res.render(
+				'setting',
+				{
+					username: item.username,
+					petname: item.petname
+				}
+			);
+		});
+	} else { // ログインしていないとき
+		res.redirect('/login');
+    }
+});
+
+app.post('/setting_edit', function(req, res) {
+	if(req.body.username != '' && req.body.petname != '') {
+		mongo.users.update(
+			{ userid: req.user },
+			{$set: 
+				{ username: req.body.username,
+				  petname: req.body.petname
+				}
+			},
+			{upsert: true},
+			function() {
+				res.render('setting_edit', { username: req.body.username, petname: req.body.petname});
+			}
+		);
+	} else {
+		// 未入力の項目があるとき
+		res.render('/setting', { username: item.username, petname: item.petname});
+	}
+});
 // local認証
 app.post('/locallogin',
   passport.authenticate('local', { successRedirect: '/userpage',
