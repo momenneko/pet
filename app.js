@@ -89,7 +89,7 @@ app.get('/userpage', function(req, res) {
 					i++;
 					if(i > 4) i %= 5;
 				}, 1000);
-				/*
+				
 				res.render(
 					'userpage',
 					{
@@ -100,8 +100,8 @@ app.get('/userpage', function(req, res) {
 						remark: item.remark[0]
 					}
 				);
-*/
-				res.sendfile(__dirname + '/userpage.html')
+
+				//res.sendfile(__dirname + '/userpage.html')
 			}
 		});
 	} else { // ログインしていないとき
