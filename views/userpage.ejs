@@ -185,7 +185,7 @@ function init() {
 	
 	// カメラ
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set(0,200,600);
+	camera.position.set(600,400,0);
 
 	// カメラ追従
 	camera.target = new THREE.Vector3( 0, 150, 0 );
@@ -383,7 +383,7 @@ var prevTime = Date.now();
 
 function render() {
 
-	//camera.lookAt( camera.target );
+	camera.lookAt( camera.target );
 
 	if ( animation ) {
 
@@ -392,6 +392,35 @@ function render() {
 		animation.update( time - prevTime );
 
 		prevTime = time;
+
+
+		var max = 96;
+
+		var min = max * (-1);
+
+		var rotate = 24;
+
+		if((mesh.rotation.y % (Math.PI * 2)) < 0.0000000000001 || Math.abs((mesh.rotation.y % (Math.PI * 2)) - (Math.PI * 2)) < 0.0000000000001) {
+
+			mesh.position.z++;
+
+			if(mesh.rotation.y != 0) mesh.rotation.y = 0;
+
+		} else if(Math.abs(((mesh.rotation.y % (Math.PI * 2)) - Math.PI)) < 0.0000000000001) {
+
+			mesh.position.z--;
+
+			if(mesh.rotation.y != Math.PI) mesh.rotation.y = Math.PI;
+
+		}
+
+		if(mesh.position.z == max || mesh.position.z == min) {
+
+			mesh.rotation.y += Math.PI / rotate;
+
+		}
+
+
 
 	}
 
