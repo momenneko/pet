@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var dateutils = require('date-utils');
 var fs = require('fs');
 var crypto = require('crypto');
+var socketio = require("socket.io");
 
 var app = express();
 var passport = require('./passport').passport;
@@ -66,7 +67,8 @@ app.post('/pet_register', function(req, res) {
 				  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
 				  sleepTime: '2000',
 				  wakeupTime: '600' ,
-				  remark: ['よろしくね', 'おはよう', 'おやすみ']
+				  remark: ['よろしくね', 'おはよう', 'おやすみ'],
+				  history: []
 				}
 			}, {upsert:true}, function() {
 			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
@@ -98,6 +100,7 @@ app.get('/userpage', function(req, res) {
 					'userpage',
 					{
 						username: item.username,
+						userid: item.userid,
 						petname: item.petname,
 						mood: item.mood,
 						hungry: item.hungry,
@@ -161,7 +164,6 @@ app.post('/localsignup',function(req, res) {
 	console.log(req.body);
 	// idが空白
 	if(req.body.userid === '') {
-		console.log('idが空白');
 		res.render('signup', {err_message: 'IDがありません'});
 	} else {
 		mongo.users.count({userid: req.body.userid}, function(err, length) {
@@ -177,7 +179,6 @@ app.post('/localsignup',function(req, res) {
 						res.render('local_idpass_register');
 					} else {
 						// パスワードNG
-						console.log('パスワードNG');
 						res.render('signup', {err_message: 'パスワードは8文字以上32文字以下の半角英数字にしてください'});
 					}
 				} else {
@@ -187,8 +188,6 @@ app.post('/localsignup',function(req, res) {
 				
 			} else {
 				// 同じIDが登録されている時
-				console.log('同じIDなので登録できませんでした');
-				console.log(length);
 				res.render('signup', {err_message: 'IDを違うものにしてください'});
 			}
 		});
@@ -207,4 +206,65 @@ var server = app.listen(3000, function () {
 	var port = server.address().port;
 	
 	console.log('Example app listening at http://%s:%s', host, port);
+});
+
+var io = socketio.listen(server);
+
+// 接続されたら、connected!とコンソールにメッセージを表示します。
+io.sockets.on("connection", function (socket) {
+  console.log("connected");
+  
+  //メッセージ受信
+  socket.on("send_word",function (data,id) {
+    console.log("on send_word "+id+" data"+ data);
+    //console.log(history[0]);
+    	/*
+    	mongo.users.find({userid: id},function (err,length) {
+	    	console.log(item.history[0]);
+	    	if(length === 0) {
+		    	mongo.users.update(
+		    		{ userid: id },
+		    		{$push: 
+		    			{ history : {word : data , num : 1}				  
+		    		}
+		    	}, {upsert:true});
+		    } else {
+		    	mongo.users.find({userid: id},function (err, item) {
+			    	mongo.users.update(
+			    		{ userid: id },
+			    		{$push: 
+			    			{ history.word : data} , { $inc: {num : 1}}				  
+			    		}
+			    	}, {upsert:true});
+			    });
+		    }
+		});
+
+		*/
+		/*
+	    mongo.users.count({userid: id, history.word: data},function (err,length) {
+	    	//console.log(item.history[0]);
+	    	if(length === 0) {
+		    	mongo.users.update(
+		    		{ userid: id },
+		    		{$push: 
+		    			{ history : {word : data , num : 1}				  
+		    		}
+		    	}, {upsert:true});
+		    } else {
+		    	mongo.users.find({userid: id},function (err, item) {
+			    	mongo.users.update(
+			    		{ userid: id },
+			    		{$push: 
+			    			{ history.word : data} , { $inc: {num : 1}}				  
+			    		}
+			    	}, {upsert:true});
+			    });
+		    }
+		});
+*/
+
+    });
+    
+
 });

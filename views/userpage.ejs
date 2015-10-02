@@ -8,10 +8,10 @@
 	<script src="/js/TrackballControls.js"></script>
 	<script src="/js/Detector.js"></script>
 	<script src="/js/Projector.js"></script>
-	<script src="../pet_talk.js"></script>
 	<script src="/js/position.js"></script>
 	<script src="/js/jquery-1.11.3.min.js"></script>
 	<script src="/js/jquery.balloon.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
 	<script src="https://www.google.com/jsapi" type="text/javascript"></script>
 	  <script type="text/javascript">
 	    // Load the Search API
@@ -94,7 +94,7 @@
     	
 	    #cse {
 	      width:15em;
-	      height:10em;
+	      height:15em;
 	      z-index: 200;
 	      overflow:scroll;
 	    }
@@ -119,6 +119,7 @@
 		
 		<p>ユーザー情報</p>
 		<ul>
+			<li id="userid" style="display:none"><%= userid %></li>
 			<li>ユーザー名: <%= username %></li>
 			<li>検索ワード: <span id="search_word"></span></li>
 			<li>現在地: <span id="present_location"></span></li>
@@ -133,7 +134,6 @@
 
 	<div id="pet_talk">
 		<p id="pet_remark">何について調べますか？</p>
-		<input type="submit" value="作成">
 			<div id="cse">
 			  <script>
 			  (function c_search() {
@@ -173,19 +173,42 @@ var KEY_CODE = {
 	RIGHT: 39
 };
 var mouseXY =[0,0];
+
+window.addEventListener("load", function () {
+		//検索でEnter
+	$("#gsc-i-id1").keyup(function(event){
+		if(event.keyCode == 13){
+		    message_balloon($("#gsc-i-id1")[0].value + "！");
+		    onSearch();
+		    setTimeout('b_2()',2000);
+	    }
+	});
+		//検索ボタン
+	$(".gsc-search-button").click(function (){
+		message_balloon($("#gsc-i-id1")[0].value + "");
+		onSearch();
+        setTimeout('b_2()',1000);
+	});
+});
+
+
 init();
 animate();
 startListen();
 
+var socket = io.connect('http://localhost:3000');
+
 function init() {
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
-	
 	//
-	
+	//
+	// サーバーサイドのsocket.IOに接続する
+    // 接続出来たら、サーバー側のコンソールにconnected!と表示される
+    
 	// カメラ
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set(600,400,0);
+	camera.position.set(600,200,500);
 
 	// カメラ追従
 	camera.target = new THREE.Vector3( 0, 150, 0 );
@@ -297,6 +320,9 @@ function init() {
 	container.appendChild( stats.domElement );
 
 	//
+			//検索でEnter
+
+
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
@@ -319,42 +345,7 @@ function animate() {
 
 	render();
 	stats.update();
-	
-	/*
-		if(timer_count == 0) {
-			timer_start(1)
-			$("#gsc-i-id1").keyup(function(event){
-				if(event.keyCode == 13){
-				    message_balloon($("#gsc-i-id1")[0].value + "！");
-				    console.log("puuu1111");
-			    }
-			});
-				//検索ボタン
-			$(".gsc-search-button").click(function (){
-
-				message_balloon($("#gsc-i-id1")[0].value + "");
-				        console.log("puuu");
-			});
-		}
-	*/
-
-
-		//検索でEnter
-	$("#gsc-i-id1").keyup(function(event){
-		if(event.keyCode == 13){
-		    message_balloon($("#gsc-i-id1")[0].value + "！");
-		    setTimeout('b_2()',2000);		    
-		    //console.log("puuu1111");
-	    }
-	});
-		//検索ボタン
-	$(".gsc-search-button").click(function (){
-
-		message_balloon($("#gsc-i-id1")[0].value + "");
-		       // console.log("puuu");
-		        setTimeout('b_2',1000);
-	});
-
+		
 	if(!checkMouseOnElement(mouseXY,"cse")) {
 		controls.enabled = true;
 		controls.update();
@@ -366,25 +357,28 @@ function animate() {
 }
 
 function onSearch() {
-	var input = $("#gsc-i-id1")[0].value;
-
+	var word = $("#gsc-i-id1")[0].value;
+	var id = $("#userid")[0].innerHTML;
+	console.log(id);
+	socket.emit("send_word",word,id);
 }
-
-
-
-/*
-<input autocomplete="off" type="text" size="10" class=" gsc-input " name="search" title="検索" id="gsc-i-id1" dir="ltr" spellcheck="false" style="outline: none; background: rgb(255, 255, 255);">
-<input type="button" value="検索" class="gsc-search-button" title="検索">
-*/
 
 var radius = 600;
 
 var prevTime = Date.now();
 
+var rand = 0;
+function rand01() {
+	rand = Math.floor(2*Math.random());
+	console.log(rand);
+	//clearTimeout();
+}		
+setInterval("rand01()",3000);
+
 function render() {
 
-	camera.lookAt( camera.target );
-
+	//camera.lookAt( camera.target );
+	
 	if ( animation ) {
 
 		var time = Date.now();
@@ -392,35 +386,34 @@ function render() {
 		animation.update( time - prevTime );
 
 		prevTime = time;
-
-
+		/*
 		var max = 96;
-
 		var min = max * (-1);
-
 		var rotate = 24;
-
 		if((mesh.rotation.y % (Math.PI * 2)) < 0.0000000000001 || Math.abs((mesh.rotation.y % (Math.PI * 2)) - (Math.PI * 2)) < 0.0000000000001) {
-
 			mesh.position.z++;
-
 			if(mesh.rotation.y != 0) mesh.rotation.y = 0;
-
 		} else if(Math.abs(((mesh.rotation.y % (Math.PI * 2)) - Math.PI)) < 0.0000000000001) {
-
 			mesh.position.z--;
-
 			if(mesh.rotation.y != Math.PI) mesh.rotation.y = Math.PI;
-
 		}
-
 		if(mesh.position.z == max || mesh.position.z == min) {
-
 			mesh.rotation.y += Math.PI / rotate;
-
 		}
+		*/
+		
+		if(mesh.rotation.y < (Math.PI * 2)) {
 
-
+			if(rand == 0)
+				mesh.rotation.y += 0.01;
+			else mesh.rotation.y -= 0.01;
+		}else {
+			mesh.rotation.y=0;
+		}
+		mesh.position.x += Math.sin(mesh.rotation.y);
+		mesh.position.z += Math.cos(mesh.rotation.y);
+		
+	
 
 	}
 
@@ -476,43 +469,48 @@ function MouseMove00Func(e){
 
 // イベントのリッスンを開始する
 function startListen() {
+
 	if(document.addEventListener){
 
 		// マウスを移動するたびに実行されるイベント
 		document.addEventListener("mousemove" , MouseMove00Func);
-		
+		//serch_form.addEventListener("keydown" , serched);
 	// アタッチイベントに対応している
 	}else if(document.attachEvent){
 
 		// マウスを移動するたびに実行されるイベント
 		document.attachEvent("onmousemove" , MouseMove00Func);	
 	}
+
 }
 
 function message_balloon(str) {
-			$("#pet_baloon").showBalloon({
-				contents: str+"<br /><br /><input type='button' value='閉じる' onclick='b_2()'/>",
-				position: "right",
-				offsetX: 0,
-				offsetY: 0,
-				tipSize: 20,
-				css: {
-					border: "solid 5px #000",
-					color: "#000",
-					fontWeight: "bold",
-					fontSize: "20px",
-					background: "url(https://lh5.googleusercontent.com/-vTfpmoECckg/T0odv9K_VbI/AAAAAAAAE4w/Mv9xb2tGomo/s200/_img.png) no-repeat",
-					width: "100px",
-					height: "70px",
-					borderRadius: "20px",
-					opacity: "1",
-					padding: "10px 20px 10px 20px"
-				}
-			});
-		}
+		console.log("mes");
+		$("#pet_baloon").showBalloon({
+			contents: str+"<br /><br /><input type='button' value='閉じる' onclick='b_2()'/>",
+			position: "right",
+			offsetX: 0,
+			offsetY: 0,
+			tipSize: 20,
+			css: {
+				border: "solid 5px #000",
+				color: "#000",
+				fontWeight: "bold",
+				fontSize: "20px",
+				background: "url(https://lh5.googleusercontent.com/-vTfpmoECckg/T0odv9K_VbI/AAAAAAAAE4w/Mv9xb2tGomo/s200/_img.png) no-repeat",
+				width: "100px",
+				height: "70px",
+				borderRadius: "20px",
+				opacity: "1",
+				padding: "10px 20px 10px 20px"
+			}
+		});
+	
+}
 
 function b_2( ) {
 	try{$("#pet_baloon").hideBalloon();}catch(e){}
+	console.log("b2");
 }
 
 </script>
