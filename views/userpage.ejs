@@ -269,7 +269,7 @@ function init() {
 	
 	// ペットモデルの読み込み
 	var loader = new THREE.JSONLoader( true );
-	loader.load( "/model_json/animal1.json", function( geometry ) {
+	loader.load( '<%= modelNo %>', function( geometry ) {
 		var texture = THREE.ImageUtils.loadTexture( '/img/bear_body2.jpg' );
 		texture.anisotropy = renderer.getMaxAnisotropy();
 		mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true, map: texture} ) );

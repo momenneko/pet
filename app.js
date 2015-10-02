@@ -14,6 +14,9 @@ var mongo = require('./mongo');
 var re_pass = /^[a-z\d]{8,32}$/i;
 var re_id = /^[a-z\d]{1,32}$/i;
 
+// モデルのjson
+var model_json = ['', '/model_json/animal1.json'];
+
 // local認証のパスワード暗号化キー
 var secretkey = 'tesspassword';
 var cipher = crypto.createCipher('aes192', secretkey);
@@ -104,7 +107,8 @@ app.get('/userpage', function(req, res) {
 						petname: item.petname,
 						mood: item.mood,
 						hungry: item.hungry,
-						remark: item.remark[0]
+						remark: item.remark[0],
+						modelNo: model_json[item.modelNo]
 					}
 				);
 
