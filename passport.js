@@ -13,13 +13,13 @@ var secretkey = 'tesspassword';
 var cipher = crypto.createCipher('aes192', secretkey);
 
 passport.serializeUser(function(userid, done) {
-    console.log('serialize');
-    console.log(userid)
+    //console.log('serialize');
+    //console.log(userid)
     done(null, userid);
 });
 passport.deserializeUser(function(userid, done) {
-    console.log('deserialize');
-    console.log(userid);
+    //console.log('deserialize');
+    //console.log(userid);
     done(null, userid);
 });
 
@@ -31,7 +31,7 @@ passport.use(new LocalStrategy(
     },
 
   function(userid, password, done) {
-    console.log("local ninsyo")
+    //console.log("local ninsyo")
     process.nextTick(function() {
         mongo.users.findOne({ userid: userid }, function(err, user) {
             if (err) { return done(err); }

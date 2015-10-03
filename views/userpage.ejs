@@ -12,27 +12,9 @@
 	<script src="/js/position.js"></script>
 	<script src="/js/jquery-1.11.3.min.js"></script>
 	<script src="/js/jquery.balloon.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
 	<script src="https://www.google.com/jsapi" type="text/javascript"></script>
-	  <script type="text/javascript">
-	    // Load the Search API
-	    google.load('search', '1');
 
-	    // Set a callback to load the Custom Search Element when you page loads
-	    google.setOnLoadCallback(
-	      function(){
-	        var customSearchControl = new google.search.CustomSearchControl('013236806639015361436:jiaaode1dms');
-
-	        // Use "mysite_" as a unique ID to override the default rendering.
-	        google.search.Csedr.addOverride("mysite_");
-
-	        // Draw the Custom Search Control in the div named "CSE"
-	        customSearchControl.draw('cse');
-
-	        // Execute an initial search
-	        customSearchControl.execute();
-	      },
-	    true);
-	  </script>
 	<title>ホーム</title>
 	<style>
 		body {
@@ -65,11 +47,16 @@
 			position: absolute;
 			top:100px;
 			right:10px;
+			text-align: center;
 			padding: 10px;
 			border: 1px solid #000;
 			background-color: #fff;
 			opacity: 0.8;
 			border-radius: 10px;
+		}
+		#pet_remark {
+			margin:0.5em 0 0 0;
+			padding:0px;
 		}
 		#pet_baloon {
 			position: absolute;
@@ -81,9 +68,36 @@
 			opacity: 0;
 			border-radius: 10px;
 		}
-		#pet_talk {
+		#cse {
+			margin:0;
+			padding: 0;
+		    width:15em;
+		    height:15em;
+		    overflow:scroll;
+	    }
+	    .gsc-search-button {
+			cursor: pointer;
+			cursor: hand;	    	
+	    }
+	    .gsc-control-cse .gsc-control-cse-ja{
+	    	margin:0;
+	    	padding: 0;
+	    }
+	    
+	    .gsc-above-wrapper-area {
+	    	height:1em;
+	    }
+	    .gsc-result-info-container .gsc-result-info{
+	    	padding: 0 0 1em 0;	    	
+	    	margin: 0;
+	    }
+	    /*
+	    .gsc-result-info {
+	    	padding:3em 0 0 0;
+	    }*/
+		#auto_search {		
 			position: absolute;
-			top:100px;
+			top:410px;
 			right:10px;
 			padding: 10px;
 			border: 1px solid #000;
@@ -92,18 +106,25 @@
 			border-radius: 10px;
 		}
     	
-	    #cse {
-	      width:15em;
-	      height:10em;
-	      z-index: 200;
-	      overflow:scroll;
+	    #auto_cse {
+	    	margin:0;
+			padding: 0;
+		    width:15em;
+		    height:14em;	      
+		    overflow:scroll;
 	    }
-	    .gsc-control-cse {
-			z-index: 200;
+
+	    #auto_cse .gsc-search-box {
+	    		
+			display:none;
 	    }
-	    .gsc-control-cse-ja {
-		z-index: 200;
-	    }
+	    #stop_auto {
+	    	position: absolute;
+			right:10px;
+			cursor: pointer;
+			cursor: hand;
+	    }		
+	    	    
 	</style>
 </head>
 <body>
@@ -119,6 +140,7 @@
 		
 		<p>ユーザー情報</p>
 		<ul>
+			<li id="userid" style="display:none"><%= userid %></li>
 			<li>ユーザー名: <%= username %></li>
 			<li>検索ワード: <span id="search_word"></span></li>
 			<li>現在地: <span id="present_location"></span></li>
@@ -133,10 +155,9 @@
 
 	<div id="pet_talk">
 		<p id="pet_remark">何について調べますか？</p>
-		<input type="submit" value="作成">
 			<div id="cse">
 			  <script>
-			  (function c_search() {
+			  (function () {
 			    var cx = '013236806639015361436:jiaaode1dms';
 			    var gcse = document.createElement('script');
 			    gcse.type = 'text/javascript';
@@ -150,16 +171,62 @@
 			  <gcse:search></gcse:search>
 			</div>
 		
-  	</div>	
-
-	<!--
-	<div id="pet_talk">
-		<p><%= remark %></p>
-		<p id="r"></p>
-		<div id="pet_search_box"><input type="text" name="pet_search_word" size="50" value=""><br><input type="submit" value="検索"></div>
+  	</div>
+  	<div id="auto_search">
+  		<span id="auto_word" style="text-align: center"></span><input id="stop_auto" type='button' value='停止' onclick='stopAuto()'/>
+	  	<div id="auto_cse">
+				  <script>
+				  (function () {
+				    var cx = '013236806639015361436:jiaaode1dms';
+				    var gcse = document.createElement('script');
+				    gcse.type = 'text/javascript';
+				    gcse.async = true;
+				    gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') +
+				        '//cse.google.com/cse.js?cx=' + cx;
+				    var s = document.getElementsByTagName('script')[0];
+				    s.parentNode.insertBefore(gcse, s);
+				  })();
+				  </script>
+				  <gcse:search></gcse:search>
+		</div>
 	</div>
-	-->
+
 	<script>
+
+	// Load the Search API
+	google.load('search', '1');
+
+	    // Set a callback to load the Custom Search Element when you page loads
+	    var customSearchControl;
+	    google.setOnLoadCallback(
+	    	function(){
+	    		customSearchControl = new google.search.CustomSearchControl('013236806639015361436:jiaaode1dms');
+
+		        // Use "mysite_" as a unique ID to override the default rendering.
+		        google.search.Csedr.addOverride("mysite_");
+
+		        // Draw the Custom Search Control in the div named "CSE"
+		        customSearchControl.draw('cse');
+
+		        // Execute an initial search
+		        customSearchControl.execute();
+	    	},true);
+
+	    var customSearchControl_auto;
+	    google.setOnLoadCallback(
+	    	function(){
+	    		customSearchControl_auto = new google.search.CustomSearchControl('013236806639015361436:jiaaode1dms');
+
+		        // Use "mysite_" as a unique ID to override the default rendering.
+		        google.search.Csedr.addOverride("mysite_");
+
+		        // Draw the Custom Search Control in the div named "CSE"
+		        customSearchControl_auto.draw('auto_cse');
+
+		        // Execute an initial search
+		        customSearchControl_auto.execute();
+	    	},true);
+
 	// WebGL未サポートブラウザへの対応
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -173,16 +240,43 @@ var KEY_CODE = {
 	RIGHT: 39
 };
 var mouseXY =[0,0];
+
+var prev_search_time = Date.now();
+var searchTimeSpan = 5000;
+window.addEventListener("load", function () {
+		//検索でEnter
+	$("#gsc-i-id1").keyup(function(event){
+		if(event.keyCode == 13){			
+		    message_balloon($("#gsc-i-id1")[0].value + "！");
+		    onSearch();
+		    
+	    }
+	});
+		//検索ボタン
+	$(".gsc-search-button").click(function (){		
+		message_balloon($("#gsc-i-id1")[0].value + "！");
+		onSearch();
+        
+	});
+	console.log("onload");
+	socket.emit("pull_word",$("#userid")[0].innerHTML);
+	setInterval("AutoSearch()",1000);
+});
+
+
 init();
 animate();
 startListen();
 
+var socket = io.connect('http://localhost:3000');
+
 function init() {
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
-	
-	//
-	
+
+	// サーバーサイドのsocket.IOに接続する
+    // 接続出来たら、サーバー側のコンソールにconnected!と表示される
+    
 	// カメラ
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
 	camera.position.set(0,200,600);
@@ -297,6 +391,9 @@ function init() {
 	container.appendChild( stats.domElement );
 
 	//
+			//検索でEnter
+
+
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
@@ -319,43 +416,8 @@ function animate() {
 
 	render();
 	stats.update();
-	
-	/*
-		if(timer_count == 0) {
-			timer_start(1)
-			$("#gsc-i-id1").keyup(function(event){
-				if(event.keyCode == 13){
-				    message_balloon($("#gsc-i-id1")[0].value + "！");
-				    console.log("puuu1111");
-			    }
-			});
-				//検索ボタン
-			$(".gsc-search-button").click(function (){
-
-				message_balloon($("#gsc-i-id1")[0].value + "");
-				        console.log("puuu");
-			});
-		}
-	*/
-
-
-		//検索でEnter
-	$("#gsc-i-id1").keyup(function(event){
-		if(event.keyCode == 13){
-		    message_balloon($("#gsc-i-id1")[0].value + "！");
-		    setTimeout('b_2()',2000);		    
-		    //console.log("puuu1111");
-	    }
-	});
-		//検索ボタン
-	$(".gsc-search-button").click(function (){
-
-		message_balloon($("#gsc-i-id1")[0].value + "");
-		       // console.log("puuu");
-		        setTimeout('b_2',1000);
-	});
-
-	if(!checkMouseOnElement(mouseXY,"cse")) {
+		
+	if(!checkMouseOnElement(mouseXY,"cse") && !checkMouseOnElement(mouseXY,"auto_cse")) {
 		controls.enabled = true;
 		controls.update();
 	}else {
@@ -366,25 +428,28 @@ function animate() {
 }
 
 function onSearch() {
-	var input = $("#gsc-i-id1")[0].value;
-
+	var word = $("#gsc-i-id1")[0].value;
+	var id = $("#userid")[0].innerHTML;
+	prev_search_time = Date.now();
+	socket.emit("send_word",word,id);
 }
-
-
-
-/*
-<input autocomplete="off" type="text" size="10" class=" gsc-input " name="search" title="検索" id="gsc-i-id1" dir="ltr" spellcheck="false" style="outline: none; background: rgb(255, 255, 255);">
-<input type="button" value="検索" class="gsc-search-button" title="検索">
-*/
 
 var radius = 600;
 
 var prevTime = Date.now();
 
+var rand = 0;
+function rand01() {
+	rand = Math.floor(3*Math.random());//0,1,2
+	//console.log(rand);
+	//clearTimeout();
+}		
+setInterval("rand01()",3000);
+
 function render() {
 
 	//camera.lookAt( camera.target );
-
+	
 	if ( animation ) {
 
 		var time = Date.now();
@@ -392,6 +457,34 @@ function render() {
 		animation.update( time - prevTime );
 
 		prevTime = time;
+		/*
+		var max = 96;
+		var min = max * (-1);
+		var rotate = 24;
+		if((mesh.rotation.y % (Math.PI * 2)) < 0.0000000000001 || Math.abs((mesh.rotation.y % (Math.PI * 2)) - (Math.PI * 2)) < 0.0000000000001) {
+			mesh.position.z++;
+			if(mesh.rotation.y != 0) mesh.rotation.y = 0;
+		} else if(Math.abs(((mesh.rotation.y % (Math.PI * 2)) - Math.PI)) < 0.0000000000001) {
+			mesh.position.z--;
+			if(mesh.rotation.y != Math.PI) mesh.rotation.y = Math.PI;
+		}
+		if(mesh.position.z == max || mesh.position.z == min) {
+			mesh.rotation.y += Math.PI / rotate;
+		}
+		*/
+		
+		if(mesh.rotation.y < (Math.PI * 2)) {
+
+			if(rand == 0) mesh.rotation.y += 0.01;
+			else if(rand == 1) mesh.rotation.y -= 0.01;
+			else {}
+		}else {
+			mesh.rotation.y=0;
+		}
+		mesh.position.x += Math.sin(mesh.rotation.y);
+		mesh.position.z += Math.cos(mesh.rotation.y);
+		
+	
 
 	}
 
@@ -400,35 +493,34 @@ function render() {
 }
 
 // キーボードのキーが押された時
+var mov_distance = 3;
 document.onkeydown = function (e) {
-
 	var key = e.keyCode;
 	//console.log(key);
-
 	// 十字キー
 	switch(e.which){
 
 	    case KEY_CODE.RIGHT:
-	     camera.position.x += 3;
-	     controls.target.x += 3;
+	     camera.position.x += mov_distance;
+	     controls.target.x += mov_distance;	     
 	     render();
 	     break;
 	     
 	    case KEY_CODE.LEFT:
-	     camera.position.x -= 3;
-	     controls.target.x -= 3;
+	     camera.position.x -= mov_distance;
+	     controls.target.x -= mov_distance;
 	     render();
 	     break;
 	      
 	    case KEY_CODE.UP:
-	     camera.position.z -= 3;
-	     controls.target.z -= 3;
+	     camera.position.z -= mov_distance;
+	     controls.target.z -= mov_distance;
 	     render();
 	     break;
 	      
 	    case KEY_CODE.DOWN:
-	     camera.position.z += 3;
-	     controls.target.z -= 3;
+	     camera.position.z += mov_distance;
+	     controls.target.z += mov_distance;
 	     render();
 	     break;
 	 }
@@ -447,44 +539,77 @@ function MouseMove00Func(e){
 
 // イベントのリッスンを開始する
 function startListen() {
+
 	if(document.addEventListener){
 
 		// マウスを移動するたびに実行されるイベント
 		document.addEventListener("mousemove" , MouseMove00Func);
-		
+		//serch_form.addEventListener("keydown" , serched);
 	// アタッチイベントに対応している
 	}else if(document.attachEvent){
 
 		// マウスを移動するたびに実行されるイベント
 		document.attachEvent("onmousemove" , MouseMove00Func);	
 	}
+
 }
 
+var timeOutId_b2 = 0;
 function message_balloon(str) {
-			$("#pet_baloon").showBalloon({
-				contents: str+"<br /><br /><input type='button' value='閉じる' onclick='b_2()'/>",
-				position: "right",
-				offsetX: 0,
-				offsetY: 0,
-				tipSize: 20,
-				css: {
-					border: "solid 5px #000",
-					color: "#000",
-					fontWeight: "bold",
-					fontSize: "20px",
-					background: "url(https://lh5.googleusercontent.com/-vTfpmoECckg/T0odv9K_VbI/AAAAAAAAE4w/Mv9xb2tGomo/s200/_img.png) no-repeat",
-					width: "100px",
-					height: "70px",
-					borderRadius: "20px",
-					opacity: "1",
-					padding: "10px 20px 10px 20px"
-				}
-			});
-		}
+		console.log("mes");
+		timeOutId_b2 = clearTimeout();
+		b_2();
+		$("#pet_baloon").showBalloon({
+			contents: str,
+			//"<br /><br /><input type='button' value='閉じる' onclick='b_2()'/>",
+			position: "right",
+			offsetX: 0,
+			offsetY: 0,
+			tipSize: 20,
+			css: {
+				border: "solid 5px #000",
+				color: "#000",
+				fontWeight: "bold",
+				fontSize: "12px",
+				background: "url(https://lh5.googleusercontent.com/-vTfpmoECckg/T0odv9K_VbI/AAAAAAAAE4w/Mv9xb2tGomo/s200/_img.png) no-repeat",
+				width: "100px",
+				//height: "70px",
+				borderRadius: "20px",
+				opacity: "1",
+				padding: "10px 20px 10px 20px",
+				overflow:"auto"
+			}
+		});	
+		timeOutId_b2 = setTimeout('b_2()',2000);	
+}
 
 function b_2( ) {
 	try{$("#pet_baloon").hideBalloon();}catch(e){}
+	console.log("b2");
 }
+
+var autoFlag = true;
+function stopAuto() {
+	autoFlag = !autoFlag;
+	if(autoFlag) $("#stop_auto")[0].value = "停止";			
+	else $("#stop_auto")[0].value = "再開";
+}
+
+function AutoSearch() {	
+	if(autoFlag && (Date.now() - prev_search_time) > searchTimeSpan) {
+		//customSearchControl.execute("auto");
+		console.log("autoSearch");
+		socket.emit("pull_word",$("#userid")[0].innerHTML);
+		prev_search_time = Date.now();
+	}
+}
+socket.on("post_word", function (word) {
+	var sw = word + " とは"	
+   	customSearchControl_auto.execute(sw);
+   	$("#auto_word")[0].innerHTML = sw +"で検索中！"
+   	message_balloon($("#gsc-i-id2")[0].value + " を自動で調べたよ！");
+   	//setTimeout('b_2()',2000);
+});
 
 </script>
 </body>

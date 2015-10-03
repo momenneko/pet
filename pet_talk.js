@@ -1,6 +1,6 @@
 
 
 exports.update = function() {
-	console.log('eko');	
+	//console.log('eko');	
 	//document.getElementById('r').innerHTML = 'neko';
 };
