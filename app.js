@@ -5,10 +5,6 @@ var dateutils = require('date-utils');
 var fs = require('fs');
 var crypto = require('crypto');
 var socketio = require("socket.io");
-<<<<<<< HEAD
-=======
-
->>>>>>> 9055d4619a122cabb3f7cfb275bb968de2d4a86c
 
 var app = express();
 var passport = require('./passport').passport;
