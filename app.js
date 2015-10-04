@@ -70,12 +70,8 @@ app.post('/pet_register', function(req, res) {
 				  sleepTime: '2000',
 				  wakeupTime: '600' ,
 				  remark: ['よろしくね', 'おはよう', 'おやすみ'],
-<<<<<<< HEAD
-				  history: []
-=======
 				  history: [],
 				  count : []
->>>>>>> 9055d4619a122cabb3f7cfb275bb968de2d4a86c
 				}
 			}, {upsert:true}, function() {
 			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
