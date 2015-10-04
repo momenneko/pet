@@ -8,6 +8,7 @@
 	<script src="/js/TrackballControls.js"></script>
 	<script src="/js/Detector.js"></script>
 	<script src="/js/Projector.js"></script>
+	<script src="../pet_talk.js"></script>
 	<script src="/js/position.js"></script>
 	<script src="/js/jquery-1.11.3.min.js"></script>
 	<script src="/js/jquery.balloon.js"></script>
@@ -74,6 +75,9 @@
 		    height:15em;
 		    overflow:scroll;
 	    }
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (1) 変わってます  ここから  !!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 	    .gsc-search-button {
 			cursor: pointer;
 			cursor: hand;	    	
@@ -104,11 +108,13 @@
 			opacity: 0.8;
 			border-radius: 10px;
 		}
+    	
 	    #auto_cse {
 	    	margin:0;
 			padding: 0;
 		    width:15em;
 		    height:14em;	      
+		    overflow:scroll;
 	    }
 
 	    #auto_cse .gsc-search-box {
@@ -120,7 +126,10 @@
 			right:10px;
 			cursor: pointer;
 			cursor: hand;
-	    }		
+	    }
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (1) 変わってます  ここまで  !!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 	    	    
 	</style>
 </head>
@@ -132,7 +141,7 @@
 		<ul>
 			<li>ペットの名前: <%= petname %></li>
 			<li>機嫌: <%= mood %></li>
-			<li>満腹度: <%= hungry %><p id="hungry"></p></li>
+			<li>満腹度: <%= hungry %></li>
 		</ul>
 		
 		<p>ユーザー情報</p>
@@ -144,12 +153,12 @@
 		</ul>
 		<p><a href="/logout">ログアウト</a></p>
 		<p><a href="/setting">アカウント設定</a></p>
-		<button onclick="hungry()">えさ</button>
 	</div>
 
 	<!-- ペットの会話用ふきだし -->
 	<div id= "pet_baloon"></div>
 	
+
 	<div id="pet_talk">
 		<p id="pet_remark">何について調べますか？</p>
 			<div id="cse">
@@ -169,6 +178,9 @@
 			</div>
 		
   	</div>
+  	<!--!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (2) 変わってます  ここから  !!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->
   	<div id="auto_search">
   		<span id="auto_word" style="text-align: center"></span><input id="stop_auto" type='button' value='停止' onclick='stopAuto()'/>
 	  	<div id="auto_cse">
@@ -187,7 +199,9 @@
 				  <gcse:search></gcse:search>
 		</div>
 	</div>
-
+ 	<!--!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (2) 変わってます  ここまで  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->
 	<script>
 
 	// Load the Search API
@@ -208,6 +222,9 @@
 		        // Execute an initial search
 		        customSearchControl.execute();
 	    	},true);
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (3) 変わってます  ここから  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 
 	    var customSearchControl_auto;
 	    google.setOnLoadCallback(
@@ -223,6 +240,9 @@
 		        // Execute an initial search
 		        customSearchControl_auto.execute();
 	    	},true);
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (3) 変わってます  ここまで  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 
 	// WebGL未サポートブラウザへの対応
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -238,12 +258,9 @@ var KEY_CODE = {
 };
 var mouseXY =[0,0];
 
-
-function hungry() {
-	console.log('esa');
-	var id = $("#userid")[0].innerHTML;
-	socket.emit("hungry", id);
-}
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (4) 変わってます  ここから  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 
 var prev_search_time = Date.now();
 var searchTimeSpan = 5000;
@@ -267,6 +284,11 @@ window.addEventListener("load", function () {
 	setInterval("AutoSearch()",1000);
 });
 
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (4) 変わってます  ここまで  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
+
 
 init();
 animate();
@@ -283,7 +305,7 @@ function init() {
     
 	// カメラ
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set(600,200,500);
+	camera.position.set(0,200,600);
 
 	// カメラ追従
 	camera.target = new THREE.Vector3( 0, 150, 0 );
@@ -339,7 +361,7 @@ function init() {
 	
 	// ペットモデルの読み込み
 	var loader = new THREE.JSONLoader( true );
-	loader.load( '<%= modelNo %>', function( geometry ) {
+	loader.load( "/model_json/animal1.json", function( geometry ) {
 		var texture = THREE.ImageUtils.loadTexture( '/img/bear_body2.jpg' );
 		texture.anisotropy = renderer.getMaxAnisotropy();
 		mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true, map: texture} ) );
@@ -420,7 +442,11 @@ function animate() {
 
 	render();
 	stats.update();
-		
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (5) 変わってます  ここから  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
+
 	if(!checkMouseOnElement(mouseXY,"cse") && !checkMouseOnElement(mouseXY,"auto_cse")) {
 		controls.enabled = true;
 		controls.update();
@@ -428,6 +454,10 @@ function animate() {
 		controls.enabled = false;
 		//message_balloon("てすと！");
 	}
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (5) 変わってます  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
 	//console.log("anim");
 }
 
@@ -439,6 +469,12 @@ function onSearch() {
 }
 
 var radius = 600;
+
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (6) 変わってます  ここから  !!!!!!!!!!
+		prevTimeの初期化とちょっとしたアニメーションパターンの変化だけ
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
 
 var prevTime = Date.now();
 
@@ -478,6 +514,7 @@ function render() {
 		*/
 		
 		if(mesh.rotation.y < (Math.PI * 2)) {
+
 			if(rand == 0) mesh.rotation.y += 0.01;
 			else if(rand == 1) mesh.rotation.y -= 0.01;
 			else {}
@@ -487,6 +524,9 @@ function render() {
 		mesh.position.x += Math.sin(mesh.rotation.y);
 		mesh.position.z += Math.cos(mesh.rotation.y);
 		
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (6) 変わってます  ここまで  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 	
 
 	}
@@ -495,8 +535,14 @@ function render() {
 
 }
 
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (7) 変わってます  ここから  !!!!!!!!!!
+		変更はただ変数にしていじりやすくしただけです!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
+
 // キーボードのキーが押された時
-var mov_distance = 3;
+var mov_distance = 3;//変更はただ変数にしていじりやすくしただけです!!!
 document.onkeydown = function (e) {
 	var key = e.keyCode;
 	//console.log(key);
@@ -529,6 +575,10 @@ document.onkeydown = function (e) {
 	 }
 
 }
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (7) 変わってます  ここまで  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
 
 
 function MouseMove00Func(e){
@@ -556,6 +606,11 @@ function startListen() {
 	}
 
 }
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (8)終 変わってます  ここから  !!!!!!!!!!
+		ここが結構function追加とかあります
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
 
 var timeOutId_b2 = 0;
 function message_balloon(str) {
@@ -613,6 +668,10 @@ socket.on("post_word", function (word) {
    	message_balloon($("#gsc-i-id2")[0].value + " を自動で調べたよ！");
    	//setTimeout('b_2()',2000);
 });
+	    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		!!!! (8)終 変わってます  ここまで  !!!!!!!!!!
+	    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
 
 </script>
 </body>
