@@ -5,6 +5,10 @@ var dateutils = require('date-utils');
 var fs = require('fs');
 var crypto = require('crypto');
 var socketio = require("socket.io");
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9055d4619a122cabb3f7cfb275bb968de2d4a86c
 
 var app = express();
 var passport = require('./passport').passport;
@@ -29,7 +33,6 @@ app.use(session({secret: 'keyboard cat'}));
 app.use(passport.initialize()); 
 app.use(passport.session());
 app.use(express.static(__dirname + '/public')); 	
-
 
 // index
 app.get('/', function(req, res) {
@@ -71,7 +74,12 @@ app.post('/pet_register', function(req, res) {
 				  sleepTime: '2000',
 				  wakeupTime: '600' ,
 				  remark: ['よろしくね', 'おはよう', 'おやすみ'],
+<<<<<<< HEAD
 				  history: []
+=======
+				  history: [],
+				  count : []
+>>>>>>> 9055d4619a122cabb3f7cfb275bb968de2d4a86c
 				}
 			}, {upsert:true}, function() {
 			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
@@ -216,62 +224,68 @@ var io = socketio.listen(server);
 
 // 接続されたら、connected!とコンソールにメッセージを表示します。
 io.sockets.on("connection", function (socket) {
-  console.log("connected");
-  
-  //メッセージ受信
-  socket.on("send_word",function (data,id) {
-    console.log("on send_word "+id+" data"+ data);
-    //console.log(history[0]);
-    /*
-    	mongo.users.find({userid: id},function (err,length) {
+  	console.log("connected");
+  	//メッセージ受信
+  	socket.on("send_word",function (data,id) {
+    	console.log("on send_word "+id+" data"+ data);
+    	//console.log(history[0]);
+    	/*
+    	mongo.users.find({userid: id},function (err,item) {
 	    	console.log(item.history[0]);
-	    	if(length === 0) {
-		    	mongo.users.update(
-		    		{ userid: id },
-		    		{$push: 
-		    			{ history : {word : data , num : 1}				  
-		    		}
-		    	}, {upsert:true});
-		    } else {
-		    	mongo.users.find({userid: id},function (err, item) {
-			    	mongo.users.update(
-			    		{ userid: id },
-			    		{$push: 
-			    			{ history.word : data} , { $inc: {num : 1}}				  
-			    		}
-			    	}, {upsert:true});
-			    });
-		    }
-		});
+	    	var index = item.history.indexOf(data);
 
-	*/
-		
-	    mongo.users.count({userid: id, "history.word": data},function (err,length) {
-	    	//console.log(item.history[0]);
-	    	if(length === 0) {
-	    		// 新しく検索したワード
-		    	mongo.users.update(
+	    	if(index == -1) {
+	    		mongo.users.update(
 		    		{ userid: id },
 		    		{$push: 
-		    			{ history : {word : data , num : 1}				  
-		    		}}
-		    	);
-		    } else {
-		    	// すでに検索したことのあるワード
-		    	mongo.users.update(
-		    		{ userid: id, "history.word": data},
-		    		{$inc: 
-		    			{"history.$.num" : 1}			  
-		    		}
-		    	);
-		    }
+		    			{	history : data,
+		    				count : 1
+		    			}
+		    	}, {upsert:true});
+	    	}else {
+	    		item.count[index] = item.count[index]+1; 
+	    		mongo.users.update(
+		    		{ userid: id },
+		    		{$set:
+		    			{	
+		    				count : item.count  
+			    		}		    		
+		    	}, {upsert:true});
+	    	}
 		});
-	});
-    
-    socket.on("hungry",function (id) {
-    	mongo.users.update(
-			{ userid: id },
-			{$inc:{ hungry: 50 }}
-		);
+		*/
+		
+		mongo.users.count({userid: id, "history.word": data},function (err,length) {
+            //console.log(item.history[0]);
+            if(length === 0) {
+                // 新しく検索したワード
+                mongo.users.update(
+                    { userid: id },
+                    {$push: 
+                        { history : {word : data , num : 1}                  
+                    }}
+                );
+            } else {
+                // すでに検索したことのあるワード
+                mongo.users.update(
+                    { userid: id, "history.word": data},
+                    {$inc: 
+                        {"history.$.num" : 1}              
+                    }
+                );
+            }
+        });
+    });
+    socket.on("pull_word",function (id) {
+    	console.log("onPull  "+id);
+    	mongo.users.findOne({userid: id},function (err,item) {
+    		//console.log(item.history[0].word);
+    		
+    		var index = Math.floor(item.history.length *Math.random());
+    		console.log(item.history[index].word);
+    		socket.emit("post_word",item.history[index].word);
+    		
+    	});   	
     });
 });
+
