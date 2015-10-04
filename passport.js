@@ -31,7 +31,7 @@ passport.use(new LocalStrategy(
     },
 
   function(userid, password, done) {
-    console.log("local ninsyo")
+    //console.log("local ninsyo")
     process.nextTick(function() {
         mongo.users.findOne({ userid: userid }, function(err, user) {
             if (err) { return done(err); }
