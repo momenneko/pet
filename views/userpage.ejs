@@ -3,6 +3,10 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+	<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
 	<script src="/js/three.min.js"></script>
 	<script src="/js/stats.min.js"></script>
 	<script src="/js/TrackballControls.js"></script>
@@ -22,29 +26,16 @@
 			margin: 0px;
 			overflow: hidden;
 		}
-		#status {
+		#status_div {
 			position: absolute;
 			top: 100px;
 			left: 10px;
-			width: 30%;
 			padding: 10px;
-			border: 1px solid #000;
-			background-color: #fff;
-			opacity: 0.8;
+			opacity: 0.9;
 		}
-		#status p {
-			font-size: 1.2em;
-		}
-		#status ul {
-			padding: 0;
-		}
-		#status ul li {
-			list-style-type: none;
-			margin: 5px;
-		}
-		#pet_talk {
+		#searchbox_div {
 			position: absolute;
-			top:100px;
+			top:50px;
 			right:10px;
 			text-align: center;
 			padding: 10px;
@@ -126,31 +117,36 @@
 </head>
 <body>
 	<!-- ステータス画面 -->
-	<div id="status">
-
-		<p>ペットのステータス</p>
-		<ul>
-			<li>ペットの名前: <%= petname %></li>
-			<li>機嫌: <%= mood %></li>
-			<li>満腹度: <%= hungry %><p id="hungry"></p></li>
-		</ul>
-		
-		<p>ユーザー情報</p>
-		<ul>
-			<li id="userid" style="display:none"><%= userid %></li>
-			<li>ユーザー名: <%= username %></li>
-			<li>検索ワード: <span id="search_word"></span></li>
-			<li>現在地: <span id="present_location"></span></li>
-		</ul>
-		<p><a href="/logout">ログアウト</a></p>
-		<p><a href="/setting">アカウント設定</a></p>
-		<button onclick="hungry()">えさ</button>
+	<div class="row" id="status_div">
+		<div class="col s12">
+			<div class="card z-depth-5">
+				<div class="card-content">
+					<span class="card-title black-text">ペットのステータス</span>
+					<ul>
+						<li>ペットの名前: <%= petname %></li>
+						<li>機嫌: <%= mood %></li>
+						<li>満腹度: <%= hungry %>a<p id="hungry"></p></li>
+					</ul>
+					
+					<span class="card-title black-text">ユーザー情報</span>
+					<ul>
+						<li id="userid" style="display:none"><%= userid %></li>
+						<li>ユーザー名: <%= username %></li>
+						<li>検索ワード: <span id="search_word"></span></li>
+						<li>現在地: <span id="present_location"></span></li>
+					</ul>
+					<a href="/logout">ログアウト</a>
+					<a href="/setting">アカウント設定</a>
+					<button onclick="hungry()">えさ</button>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- ペットの会話用ふきだし -->
 	<div id= "pet_baloon"></div>
 	
-	<div id="pet_talk">
+	<div id="searchbox_div">
 		<p id="pet_remark">何について調べますか？</p>
 			<div id="cse">
 			  <script>
@@ -167,7 +163,6 @@
 			  </script>
 			  <gcse:search></gcse:search>
 			</div>
-		
   	</div>
   	<div id="auto_search">
   		<span id="auto_word" style="text-align: center"></span><input id="stop_auto" type='button' value='停止' onclick='stopAuto()'/>
@@ -614,6 +609,9 @@ socket.on("post_word", function (word) {
    	//setTimeout('b_2()',2000);
 });
 
+socket.on("update_hungry", function(hungry) {
+	$('hungry').innerHTML = hungry;
+})
 </script>
 </body>
 </html>

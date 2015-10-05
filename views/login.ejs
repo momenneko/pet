@@ -2,27 +2,46 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
-	<title>ログイン</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+	<title>ログイン - SidePet</title>
 </head>
 <body>
-	<h1>ログイン</h1>
-    <h2><strong><a href="/signup">登録はこちら</a></strong></h2>
-	<p>Twitterでログインする</p>
-	<p><a href="/auth/twitter">Sign in with Twitter</a></p>
-	<P>ID&passwordでログイン</p>
-	<form action="/locallogin" method="post">
-    <div>
-        <label>Userid:</label>
-        <input type="text" name="userid" required>
+    <div class="container">
+    	<h1>ログイン</h1>
+    	<div class="row">
+            <div class="col s6">
+                <p>他のサービスでログイン</p>
+                <p class="center-align"><a href="/auth/twitter" class="waves-effect waves-light btn-large" style="background-color: #55acee; text-transform: none;"><i class="fa fa-twitter"></i> Twitterでログイン</a></p>
+                <br>
+                <p class="center-align"><strong>アカウントを持っていない場合は<a href="/signup">新規登録</a></strong></p>
+            </div>
+            <div class="col s6">
+            	<p>ID&passwordでログイン</p>
+            	<form action="/locallogin" method="post">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input type="text" id="userid" name="userid" class="validate" required>
+                            <label for="userid">User ID</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input type="password" id="password" name="password" class="validate" required>
+                            <label for="password">Password</label>
+                        </div>
+                    </div>
+                    <div class="row right-align">
+                        <button type="submit" class="waves-effect waves-light btn">ログイン</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <p><a href="/">INDEX</a></p>
     </div>
-    <div>
-        <label>Password:</label>
-        <input type="password" name="password" required>
-    </div>
-    <div>
-        <input type="submit" value="Log In">
-    </div>
-</form>
-	<p><a href="/">INDEX</a></p>
 </body>
 </html>

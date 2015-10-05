@@ -15,7 +15,7 @@ var re_pass = /^[a-z\d]{8,32}$/i;
 var re_id = /^[a-z\d]{1,32}$/i;
 
 // モデルのjson
-var model_json = ['', '/model_json/animal1.json'];
+var model_json = ['/model_json/animal1.json'];
 
 // local認証のパスワード暗号化キー
 var secretkey = 'tesspassword';
@@ -272,12 +272,24 @@ io.sockets.on("connection", function (socket) {
     	console.log("onPull  "+id);
     	mongo.users.findOne({userid: id},function (err,item) {
     		//console.log(item.history[0].word);
-    		
+    		/*
     		var index = Math.floor(item.history.length *Math.random());
     		console.log(item.history[index].word);
     		socket.emit("post_word",item.history[index].word);
-    		
+    		*/
     	});   	
+    });
+    // えさ
+    socket.on("hungry",function (id) {
+    	console.log("hungry");
+    	mongo.users.update(
+			{ userid: id },
+			{$inc: { hungry: 50 }}
+		);
+		mongo.users.findOne({userid: id}, function (err, item) {
+			console.log("hungry を書き換えます");
+			socket.emit("update_hungry", item.hungry);
+		});
     });
 });
 

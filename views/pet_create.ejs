@@ -2,31 +2,43 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
 	<title>ペット作成</title>
 </head>
 <body>
-	<p>ログインしました(ID: <%= userid %>)</p>
-	<p>ペットを作成しましょう</p>
-	<h1>ペット登録ページ</h1>
-	
-	<form method="post" action="./pet_register">
-	<div>
-	<label>ユーザー名</label>
-		<input type="text" name="username" placeholder="ユーザー名" required>
+	<div class="container">
+		<p>ログインしました(ID: <%= userid %>)</p>
+		<p>ペットを作成しましょう</p>
+		<h1>ペット登録ページ</h1>
+		
+		<form method="post" action="./pet_register">
+			<div>
+			<label>ユーザー名</label>
+				<input type="text" name="username" placeholder="ユーザー名" required>
+			</div>
+			<div>
+				<label>ペット名</label>
+				<input type="text" name="petname" placeholder="ペット名" required>
+			</div>
+			<div>
+				<p>モデル</p>
+				<p>
+					<input type="radio" name="modelNo" value="0" id="model0">
+					<label for="model0">クマ</label>
+				</p>
+				<p>
+					<input type="radio" name="modelNo" value="1" id="model1">
+					<label for="model1">なんか</label>
+				</p>
+			</div>
+			<div>
+				<input type="submit" value="作成">		
+			</div>
+		</form>
+		<p><a href="/logout">ログアウトする</a></p>
 	</div>
-	<div>
-		<label>ペット名</label>
-		<input type="text" name="petname" placeholder="ペット名" required>
-	</div>
-	<div>
-		<label>モデル</label>
-		<input type="radio" name="modelNo" value="1" required>
-		<input type="radio" name="modelNo" value="2">
-	</div>
-	<div>
-		<input type="submit" value="作成">		
-	</div>
-
-
-	<p><a href="/logout">ログアウトする</a></p>
 </body>

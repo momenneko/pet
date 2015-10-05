@@ -2,14 +2,21 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
 	<title>編集完了</title>
 </head>
 <body>
-	<h1>アカウント設定が完了しました!</h1>
-	<p>ユーザー名: <%= username %></p>
-	<p>ペットの名前: <%= petname %></p>
+	<div class="container">
+		<h1>アカウント設定が完了しました!</h1>
+		<p>ユーザー名: <%= username %></p>
+		<p>ペットの名前: <%= petname %></p>
 
-	<p><a href="/userpage">ユーザーページヘ</a></p>
-	<p><a href="/logout">ログアウトする</a></p>
+		<p><a href="/userpage">ユーザーページヘ</a></p>
+		<p><a href="/logout">ログアウトする</a></p>
+	</div>
 </body>
 </html>
