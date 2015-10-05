@@ -9,13 +9,14 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
 	<script src="/js/three.min.js"></script>
 	<script src="/js/stats.min.js"></script>
-	<script src="/js/TrackballControls.js"></script>
+	<script src="/js/OrbitControls.js"></script>
 	<script src="/js/Detector.js"></script>
 	<script src="/js/Projector.js"></script>
 	<script src="/js/position.js"></script>
 	<script src="/js/jquery-1.11.3.min.js"></script>
 	<script src="/js/jquery.balloon.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
+	<script src="/js/petMotion.js"></script>
 	<script src="https://www.google.com/jsapi" type="text/javascript"></script>
 
 	<title>ホーム</title>
@@ -222,9 +223,14 @@
 	// WebGL未サポートブラウザへの対応
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
+var clock = new THREE.Clock(); //追加
 var container, stats;
 var camera, scene, projector, renderer;
 var mesh, animation;
+var playbackConfig = {
+		speed: 1.0,
+		wireframe: false
+	}; //いらないかもしれないが取ったら怖いので
 var KEY_CODE = {
 	UP: 38,
 	DOWN: 40,
@@ -292,11 +298,14 @@ function init() {
 	
 	// マウスのトラックボールのコントロール
 	
-	controls = new THREE.TrackballControls( camera );
+	controls = new THREE.OrbitControls( camera );
 	
 	controls.rotateSpeed = 1.0;
 	controls.zoomSpeed = 1.2;
 	controls.panSpeed = 0.8;
+
+	controls.minPolarAngle = 0; //追加
+	controls.maxPolarAngle = Math.PI / 2; //追加、これで地面方向の裏側は見えなくなる
 
 	controls.noZoom = false;
 	controls.noPan = false;
@@ -333,7 +342,7 @@ function init() {
 	
 	
 	// ペットモデルの読み込み
-	var loader = new THREE.JSONLoader( true );
+	/*var loader = new THREE.JSONLoader( true );
 	loader.load( '<%= modelNo %>', function( geometry ) {
 		var texture = THREE.ImageUtils.loadTexture( '/img/bear_body2.jpg' );
 		texture.anisotropy = renderer.getMaxAnisotropy();
@@ -346,9 +355,22 @@ function init() {
 		animation = new THREE.MorphAnimation( mesh );
 		animation.play();
 
-	} );
-	
+	} );*/
 
+	var config = {
+		baseUrl: "models/bear/",
+		body: "standandwalk.json", //models/bear/standandwalk.json
+		skins: [ "bear_body2.png" ] //models/bear/skins/テクスチャファイル(複数可)
+	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
+	character = new THREE.petMotion();
+	character.scale = 20;
+	console.log(character);
+	character.onLoadComplete = function() {
+		setupAnimations( character );
+	}
+	character.loadParts( config );
+	scene.add( character.root );
+	
 	//
 
 	// 地面表示
@@ -397,12 +419,31 @@ function init() {
 
 }
 
+function setupAnimations( character ) { //アニメーションを格納します
+
+	var generateCallback = function( animationName ) {
+
+		return function () { character.setAnimation( animationName ); };
+
+	}
+
+	var animations = character.meshBody.geometry.animations;
+	//console.log(animations.walk);
+
+	for ( var a in animations ) {
+
+		playbackConfig[ a ] = generateCallback( a );
+
+	}
+
+}
+
 function onWindowResize() {
 
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 
-	controls.handleResize();
+	//controls.handleResize();
 
 	renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -437,25 +478,42 @@ var radius = 600;
 
 var prevTime = Date.now();
 
-var rand = 0;
+/*var rand = 0;
 function rand01() {
 	rand = Math.floor(3*Math.random());//0,1,2
 	//console.log(rand);
 	//clearTimeout();
-}		
+}*/
+var rand1 = 0; //進む向き
+var rand2 = 1; //立ち止まるか
+function rand01() {
+    rand1 = Math.floor(2 * Math.random());
+    //console.log(rand1);
+    //clearTimeout();
+}
+function rand02() { //追加
+	rand2 = Math.floor(5 * Math.random());
+	//console.log(rand2);
+}
 setInterval("rand01()",3000);
+setInterval("rand02()",2000); //追加
 
 function render() {
 
 	//camera.lookAt( camera.target );
 	
-	if ( animation ) {
+	if ( character ) { //animation→character
 
-		var time = Date.now();
+		/*var time = Date.now();
 
 		animation.update( time - prevTime );
 
-		prevTime = time;
+		prevTime = time;*/
+
+		var delta = clock.getDelta();
+
+		character.update( delta );
+
 		/*
 		var max = 96;
 		var min = max * (-1);
@@ -472,7 +530,7 @@ function render() {
 		}
 		*/
 		
-		if(mesh.rotation.y < (Math.PI * 2)) {
+		/*if(mesh.rotation.y < (Math.PI * 2)) {
 			if(rand == 0) mesh.rotation.y += 0.01;
 			else if(rand == 1) mesh.rotation.y -= 0.01;
 			else {}
@@ -480,9 +538,30 @@ function render() {
 			mesh.rotation.y=0;
 		}
 		mesh.position.x += Math.sin(mesh.rotation.y);
-		mesh.position.z += Math.cos(mesh.rotation.y);
-		
-	
+		mesh.position.z += Math.cos(mesh.rotation.y);*/
+
+		if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする
+			if(character.activeAnimation == "walk") {
+				character.setAnimation("stand");
+			}
+		} else {
+
+			if(character.activeAnimation == "stand") { //モーションを歩くものにする
+				character.setAnimation("walk");
+			}
+
+			if(character.root.rotation.y < (Math.PI * 2)) {
+	            if(rand1 == 0)
+	            	character.root.rotation.y += 0.01;
+	       		else character.root.rotation.y -= 0.01;
+	        } else {
+	            character.root.rotation.y = 0;
+	        }
+
+	        character.root.position.x += Math.sin(character.root.rotation.y);
+			character.root.position.z += Math.cos(character.root.rotation.y);
+
+		}
 
 	}
 
@@ -608,6 +687,7 @@ socket.on("post_word", function (word) {
    	message_balloon($("#gsc-i-id2")[0].value + " を自動で調べたよ！");
    	//setTimeout('b_2()',2000);
 });
+
 
 socket.on("update_hungry", function(hungry) {
 	$('hungry').innerHTML = hungry;
