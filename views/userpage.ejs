@@ -257,6 +257,7 @@ var animation = [];
 var model_id = "ID_1"; //モデル、テクスチャの判別
 var model_num = 0;//ルームのモデルの数の判別
 var connect_num;
+var characters = [];
 var playbackConfig = {
 		speed: 1.0,
 		wireframe: false
@@ -358,7 +359,6 @@ function init() {
 
 	// カメラ追従
 	camera.target = new THREE.Vector3(0,100,0);
-
 	//
 	
 	scene = new THREE.Scene();
@@ -408,17 +408,11 @@ function init() {
 
 	scene.add( light );
 
-	//
-	
-	
-	// ペットモデルの読み込み
-
-	/*var loader = new THREE.JSONLoader( true );
-	loader.load( '<%= modelNo %>', function( geometry ) {
+    /*	
 	var config = {
 		baseUrl: "models/bear/",
-		body: "standandwalk.json", //models/bear/standandwalk.json
-		skins: [ "bear_body2.png" ] //models/bear/skins/テクスチャファイル(複数可)
+		body: "bear.json", //models/bear/standandwalk.json
+		skins: [ "bear_blue.png" ] //models/bear/skins/テクスチャファイル(複数可)
 	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
 	character = new THREE.petMotion();
 	character.scale = 20;
@@ -428,42 +422,8 @@ function init() {
 	}
 	character.loadParts( config );
 	scene.add( character.root );
-	/*
-	modelReader("/model_json/ID_1/animal1.json","/img/ID_1/bear_body2.jpg",model_num);
-	model_num++;
-	
-	modelReader("/model_json/ID_1/animal1.json","/img/ID_1/bear_body2.jpg",0);
-	model_num++;
-	/*
-	var loader = new THREE.JSONLoader( true );
-	loader.load( "/model_json/animal1.json", function( geometry ) {
-		var texture = THREE.ImageUtils.loadTexture( '/img/bear_body2.jpg' );
-		texture.anisotropy = renderer.getMaxAnisotropy();
-		mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true, map: texture} ) );
-		//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } ) );
-		//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060} ) );
-		mesh.scale.set( 20, 20, 20 );
-		mesh.castShadow = true;
-		scene.add( mesh );
-		animation = new THREE.MorphAnimation( mesh );
-		animation.play();
-
-	} );*/
-
-	var config = {
-		baseUrl: "models/bear/",
-		body: "standandwalk.json", //models/bear/standandwalk.json
-		skins: [ "bear_body2.png" ] //models/bear/skins/テクスチャファイル(複数可)
-	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
-	character = new THREE.petMotion();
-	character.scale = 20;
-	console.log(character);
-	character.onLoadComplete = function() {
-		setupAnimations( character );
-	}
-	character.loadParts( config );
-	scene.add( character.root );
-	
+	*/
+	modelReader("bear","brown",0);
 	//
 
 	// 地面表示
@@ -511,6 +471,24 @@ function init() {
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
+
+	//bear,brown,0
+function modelReader(model_name,model_color,model_num) {
+	var config = {
+		baseUrl: "models/"*model_name,
+			body: model_name+".json", //models/bear/standandwalk.json
+			skins: [ model_name+"_"+model_color ] //models/bear/skins/テクスチャファイル(複数可)
+		}; //モデル番号のとこがわからなかったので書き換えてません、すみません
+		characters[model_num] = new THREE.petMotion();
+		characters[model_num].scale = 20;
+		//console.log(character);
+		characters[model_num].onLoadComplete = function() {
+			setupAnimations( characters[model_num] );
+		}
+		characters[model_num].loadParts( config );
+		scene.add( characters[model_num].root );
+}
+
 function setupAnimations( character ) { //アニメーションを格納します
 
 	var generateCallback = function( animationName ) {
@@ -529,7 +507,7 @@ function setupAnimations( character ) { //アニメーションを格納しま�
 	}
 
 }
-
+/*
 // ペットモデルの読み込み
 function modelReader(model_id,user_num) {
 	var config = {
@@ -582,25 +560,6 @@ function modelReader(model,tex,id) {
 }*/
 
 
-function setupAnimations( character ) { //アニメーションを格納します
-
-	var generateCallback = function( animationName ) {
-
-		return function () { character.setAnimation( animationName ); };
-
-	}
-
-	var animations = character.meshBody.geometry.animations;
-	//console.log(animations.walk);
-
-	for ( var a in animations ) {
-
-		playbackConfig[ a ] = generateCallback( a );
-
-	}
-
-}
-
 function onWindowResize() {
 
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -623,14 +582,14 @@ function animate() {
 		requestAnimationFrame( animate );
 	}
 
-	render();
+	render(0);
 
 	//stats.update();
 
 
 	if(!checkMouseOnElement(mouseXY,"cse") && 
 		!checkMouseOnElement(mouseXY,"auto_cse") &&
-		 !checkMouseOnElement(mouseXY,"status")) {
+		 !checkMouseOnElement(mouseXY,"status_div")) {
 		controls.enabled = true;
 		controls.update();
 	}else {
@@ -670,69 +629,67 @@ function rand02() { //追加
 }
 setInterval("rand01()",3000);
 setInterval("rand02()",2000); //追加
-
-/*
-function render() {
-
-	// カメラ追従
-	
-	//camera.position.set(character.root.position.x - 500, character.root.position.y + 200, character.root.position.z +  500);
-	//camera.target = character.root.position;
-	//camera.lookAt( camera.target );
-	
-
-	if ( character ) { //animation→character
-
-		/*var time = Date.now();
-
-		animation.update( time - prevTime );
-
-		prevTime = time;*/
-
-		//var delta = clock.getDelta();
-
-		//character.update( delta );
-
-		/*
-		var max = 96;
-		var min = max * (-1);
-		var rotate = 24;
-		if((mesh.rotation.y % (Math.PI * 2)) < 0.0000000000001 || Math.abs((mesh.rotation.y % (Math.PI * 2)) - (Math.PI * 2)) < 0.0000000000001) {
-			mesh.position.z++;
-			if(mesh.rotation.y != 0) mesh.rotation.y = 0;
-		} else if(Math.abs(((mesh.rotation.y % (Math.PI * 2)) - Math.PI)) < 0.0000000000001) {
-			mesh.position.z--;
-			if(mesh.rotation.y != Math.PI) mesh.rotation.y = Math.PI;
-		}
-		if(mesh.position.z == max || mesh.position.z == min) {
-			mesh.rotation.y += Math.PI / rotate;
-		}
-		*/
-		
-/*
-		prevTime = time;
-		
-		if(mesh.rotation.y < (Math.PI * 2)) {
-
-			if(rand == 0) mesh.rotation.y += 0.01;
-			else if(rand == 1) mesh.rotation.y -= 0.01;
-			else {}
-		}else {
-			mesh.rotation.y=0;
-		}
-		mesh.position.x += Math.sin(mesh.rotation.y);
-		mesh.position.z += Math.cos(mesh.rotation.y);
-
-		if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする
-			if(character.activeAnimation == "walk") {
-				character.setAnimation("stand");
-			}
-		mesh.position.z += Math.cos(mesh.rotation.y);		
-
-	}
-	renderer.render( scene, camera );
-} 
-*/
+function render(model_num) {
+    
+    if ( characters[model_num] ) { //animation→characters[model_num]
+        
+        var delta = clock.getDelta();        
+        characters[model_num].update( delta );
+        //中心からの二乗距離
+        var far = Math.sqrt(Math.pow(characters[model_num].root.position.x,2)+Math.pow(characters[model_num].root.position.z,2));
+        //符号        
+        
+        //console.log(sign);
+        if(Position_Fix_Flag) {                characters[model_num].root.rotation.y = simplifyRadian(characters[model_num].root.rotation.y);            var direct;
+            if(characters[model_num].root.position.x >= 0 && characters[model_num].root.position.z >= 0) {
+                direct = (Math.acos(Math.abs(characters[model_num].root.position.z)/far) + Math.PI);
+            }else if(characters[model_num].root.position.x < 0 && characters[model_num].root.position.z >= 0) {
+                direct = (Math.PI-1*Math.acos(Math.abs(characters[model_num].root.position.z)/far));
+            }else if(characters[model_num].root.position.x < 0 && characters[model_num].root.position.z < 0) {                
+                direct = (Math.acos(Math.abs(characters[model_num].root.position.z)/far));
+            }else if(characters[model_num].root.position.x >= 0 && characters[model_num].root.position.z < 0) {
+                direct = (2*Math.PI-1*Math.acos(Math.abs(characters[model_num].root.position.z)/far));
+            }else{}
+            if(    Math.abs(simplifyRadian(direct) - characters[model_num].root.rotation.y) > 0.1 ){
+                
+                characters[model_num].root.rotation.y += 0.01;
+                characters[model_num].root.position.x += Math.sin(characters[model_num].root.rotation.y);
+                characters[model_num].root.position.z += Math.cos(characters[model_num].root.rotation.y);
+                
+            }else {
+                console.log("inin");
+                characters[model_num].root.position.x += Math.sin(characters[model_num].root.rotation.y);
+                characters[model_num].root.position.z += Math.cos(characters[model_num].root.rotation.y);
+                if(far < 320) {
+                    console.log("out");
+                    Position_Fix_Flag = false;                
+                }
+            }
+            
+        }
+        else if(far > 350 && !Position_Fix_Flag) {
+            console.log("in");
+            Position_Fix_Flag = true;
+            FixRoot = characters[model_num].root.rotation.y;
+            characters[model_num].setAnimation("walk");
+        }else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする            
+            if(characters[model_num].activeAnimation == "walk") {
+                characters[model_num].setAnimation("stand");
+            }
+        } else {            if(characters[model_num].activeAnimation == "stand") { //モーションを歩くものにする
+                characters[model_num].setAnimation("walk");
+            }            if(characters[model_num].root.rotation.y < (Math.PI * 2)) {
+                if(rand1 == 0)
+                    characters[model_num].root.rotation.y += 0.01;
+                   else if(rand1==1)
+                       characters[model_num].root.rotation.y -= 0.01;
+                   else {}                   
+            } else {
+                characters[model_num].root.rotation.y = 0;
+            }            characters[model_num].root.position.x += Math.sin(characters[model_num].root.rotation.y);
+            characters[model_num].root.position.z += Math.cos(characters[model_num].root.rotation.y);    
+        }            }    renderer.render( scene, camera );
+    } 
 /*
 function render() {
 	//camera.lookAt( camera.target );
@@ -780,91 +737,87 @@ function render() {
 
 }
 */
-
-<<<<<<< HEAD
+var Position_Fix_Flag = false;
 function simplifyRadian(rad) {
-	if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
-	else return rad;
-}
-
-function render() {	
-	if ( character ) { //animation→character
-		var delta = clock.getDelta();
-		character.update( delta );
-		//中心からの二乗距離
-		var far = Math.sqrt(Math.pow(character.root.position.x,2)+Math.pow(character.root.position.z,2));
-		//符号				
-		//console.log(sign);
-		if(Position_Fix_Flag) {	
-			character.root.rotation.y = simplifyRadian(character.root.rotation.y);
-			var direct;
-			if(character.root.position.x >= 0 && character.root.position.z >= 0) {
-				direct = (Math.acos(Math.abs(character.root.position.z)/far) + Math.PI);
-				console.log("1,1");
-			}else if(character.root.position.x < 0 && character.root.position.z >= 0) {
-				direct = (Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
-				console.log("-1,1");
-			}else if(character.root.position.x < 0 && character.root.position.z < 0) {				
-				direct = (Math.acos(Math.abs(character.root.position.z)/far));
-				console.log("-1,-1");
-			}else if(character.root.position.x >= 0 && character.root.position.z < 0) {
-				direct = (2*Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
-				console.log("1,-1");
-			}else{}
-			if(	Math.abs(simplifyRadian(direct) - character.root.rotation.y) > 0.1 ){				
-				character.root.rotation.y += 0.01;
-				character.root.position.x += Math.sin(character.root.rotation.y);
-				character.root.position.z += Math.cos(character.root.rotation.y);				
-			}else {
-				console.log("inin");
-				character.root.position.x += Math.sin(character.root.rotation.y);
-				character.root.position.z += Math.cos(character.root.rotation.y);
-				if(far < 320) {
-					console.log("out");
-					Position_Fix_Flag = false;				
-				}
-			}			
-		}
-		else if(far > 350 && !Position_Fix_Flag) {
-			console.log("in");
-			Position_Fix_Flag = true;
-			FixRoot = character.root.rotation.y;
-			character.setAnimation("walk");
-		}else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする			
-			if(character.activeAnimation == "walk") {
-				character.setAnimation("stand");
-			}
-		} else {
-			if(character.activeAnimation == "stand") { //モーションを歩くものにする
-				character.setAnimation("walk");
-			}
-			
-			if(character.root.rotation.y < (Math.PI * 2)) {
-	            if(rand1 == 0) {
-	            	character.root.rotation.y += 0.01;
-	            	console.log("undee");
-	            }else if(rand1==1)
-	       			character.root.rotation.y -= 0.01;
-	       		else {}	       		
-	        } else {
-	            character.root.rotation.y = 0;
-	        }
-			
-	        character.root.position.x += Math.sin(character.root.rotation.y);
-			character.root.position.z += Math.cos(character.root.rotation.y);	
-		}		
-	}
-	renderer.render( scene, camera );
-}
-=======
-var Position_Fix_Flag = false;function simplifyRadian(rad) {
     if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
     else return rad;
-}function render() {
+}
+/*
+function render() {
     
     if ( character ) { //animation→character
         
         var delta = clock.getDelta();        character.update( delta );
+        //中心からの二乗距離
+        var far = Math.sqrt(Math.pow(character.root.position.x,2)+Math.pow(character.root.position.z,2));
+        //符号        
+        
+        //console.log(sign);
+        if(Position_Fix_Flag) {                
+        	character.root.rotation.y = simplifyRadian(character.root.rotation.y);            
+        	var direct;
+            if(character.root.position.x >= 0 && character.root.position.z >= 0) {
+                direct = (Math.acos(Math.abs(character.root.position.z)/far) + Math.PI);
+                console.log("1,1");
+            }else if(character.root.position.x < 0 && character.root.position.z >= 0) {
+                direct = (Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("-1,1");
+            }else if(character.root.position.x < 0 && character.root.position.z < 0) {                
+                direct = (Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("-1,-1");
+            }else if(character.root.position.x >= 0 && character.root.position.z < 0) {
+                direct = (2*Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("1,-1");
+            }else{}
+            if(    Math.abs(simplifyRadian(direct) - character.root.rotation.y) > 0.1 ){
+                
+                character.root.rotation.y += 0.01;
+                character.root.position.x += Math.sin(character.root.rotation.y);
+                character.root.position.z += Math.cos(character.root.rotation.y);
+                
+            }else {
+                console.log("inin");
+                character.root.position.x += Math.sin(character.root.rotation.y);
+                character.root.position.z += Math.cos(character.root.rotation.y);
+                if(far < 320) {
+                    console.log("out");
+                    Position_Fix_Flag = false;                
+                }
+            }
+            
+        }
+        else if(far > 350 && !Position_Fix_Flag) {
+            console.log("in");
+            Position_Fix_Flag = true;
+            FixRoot = character.root.rotation.y;
+            character.setAnimation("walk");
+        }else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする            
+            if(character.activeAnimation == "walk") {
+                character.setAnimation("stand");
+            }
+        } else {            if(character.activeAnimation == "stand") { //モーションを歩くものにする
+                character.setAnimation("walk");
+            }            if(character.root.rotation.y < (Math.PI * 2)) {
+                if(rand1 == 0)
+                    character.root.rotation.y += 0.01;
+                   else if(rand1==1)
+                       character.root.rotation.y -= 0.01;
+                   else {}                   
+            } else {
+                character.root.rotation.y = 0;
+            }            character.root.position.x += Math.sin(character.root.rotation.y);
+            character.root.position.z += Math.cos(character.root.rotation.y);    
+        }            }    renderer.render( scene, camera );
+    } 
+
+*/
+/*
+function render( character ) {
+    
+    if ( character ) { //animation→character
+        
+        var delta = clock.getDelta();        
+        character.update( delta );
         //中心からの二乗距離
         var far = Math.sqrt(Math.pow(character.root.position.x,2)+Math.pow(character.root.position.z,2));
         //符号        
@@ -922,9 +875,12 @@ var Position_Fix_Flag = false;function simplifyRadian(rad) {
                 character.root.rotation.y = 0;
             }            character.root.position.x += Math.sin(character.root.rotation.y);
             character.root.position.z += Math.cos(character.root.rotation.y);    
-        }            }    renderer.render( scene, camera );} 
+        }            
+    }    renderer.render( scene, camera );
+   } 
+   */
 
->>>>>>> upstream/master
+//>>>>>>> upstream/master
 function OtherModelRender(num,position_x,position_z,rotation_y) {
 	
 	if ( animation[num] ) {
