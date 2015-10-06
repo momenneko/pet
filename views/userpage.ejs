@@ -83,10 +83,6 @@
 	    	padding: 0 0 1em 0;	    	
 	    	margin: 0;
 	    }
-	    /*
-	    .gsc-result-info {
-	    	padding:3em 0 0 0;
-	    }*/
 		#auto_search {		
 			position: absolute;
 			top:410px;
@@ -97,11 +93,13 @@
 			opacity: 0.8;
 			border-radius: 10px;
 		}
+    	
 	    #auto_cse {
 	    	margin:0;
 			padding: 0;
 		    width:15em;
 		    height:14em;	      
+		    overflow:scroll;
 	    }
 
 	    #auto_cse .gsc-search-box {
@@ -113,7 +111,20 @@
 			right:10px;
 			cursor: pointer;
 			cursor: hand;
-	    }		
+	    }
+	    #chat_view {
+	    	height:4em;
+	    }
+	    #chat_list {
+	    	overflow:scroll;
+	    	height:3em;
+	    }
+	    .show {	
+	    	display:inline;    	
+	    }
+	    .hide {
+	    	display: none;
+	    }
 	    	    
 	</style>
 </head>
@@ -137,6 +148,18 @@
 						<li>検索ワード: <span id="search_word"><%= history %></span></li>
 						<li>現在地: <span id="present_location"></span></li>
 					</ul>
+					<span id="room_state">ルーム未作成</span>
+					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()'/><br>
+					<span "join">ルームに入る</span>
+					<input id="joinRoomID" class="submit_button" type="text"/>
+					<input id="joinButton" type='button' value='ルーム加入' onclick='joinRoom()'/>
+					<div id="chat_view" class="hide">
+						<div id="chat_list"></div>
+						<form>
+							<input id="comment" type="text" value=""/>
+							<input id="msg_submit" class="submit_button" type="submit" value="送信" />
+						 </form>
+					</div>
 					<p><a href="/logout"><i class="fa fa-sign-out"></i>ログアウト</a></p>
 					<p><a href="/setting"><i class="fa fa-cog"></i>アカウント設定</a></p>
 					<br>
@@ -187,7 +210,6 @@
 				  <gcse:search></gcse:search>
 		</div>
 	</div>
-
 	<script>
 
 	// Load the Search API
@@ -230,11 +252,19 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 var clock = new THREE.Clock(); //追加
 var container, stats;
 var camera, scene, projector, renderer;
-var mesh, animation;
+var mesh = [];
+var animation = [];
+var model_id = "ID_1"; //モデル、テクスチャの判別
+var model_num = 0;//ルームのモデルの数の判別
+var connect_num;
 var playbackConfig = {
 		speed: 1.0,
 		wireframe: false
 	}; //いらないかもしれないが取ったら怖いので
+
+var prevTime = [];
+prevTime[0] = Date.now();
+
 var KEY_CODE = {
 	UP: 38,
 	DOWN: 40,
@@ -243,32 +273,70 @@ var KEY_CODE = {
 };
 var mouseXY =[0,0];
 
-
-function food() {
-	var id = $("#userid")[0].innerHTML;
-	socket.emit("food", id);
-}
+var socket = io.connect('http://localhost:3000');
 
 var prev_search_time = Date.now();
 var searchTimeSpan = 5000;
+
+
 window.addEventListener("load", function () {
 		//検索でEnter
+		/*
 	$("#gsc-i-id1").keyup(function(event){
 		if(event.keyCode == 13){			
 		    message_balloon($("#gsc-i-id1")[0].value + "！");
-		    onSearch();
-		    
+		    onSearch(); 
+	    }
+	});
+*/
+	$("#gsc-i-id1").on("click",function(){
+		console.log("wordclick");
+		if(!$("#gsc-i-id1").val() == "") {		
+		    message_balloon($("#gsc-i-id1")[0].value + "！");
+		    onSearch(); 
 	    }
 	});
 		//検索ボタン
 	$(".gsc-search-button").click(function (){		
 		message_balloon($("#gsc-i-id1")[0].value + "！");
-		onSearch();
-        
+		onSearch();      
 	});
-	console.log("onload");
-	socket.emit("pull_word",$("#userid")[0].innerHTML);
+	//socket.emit("pull_word",$("#userid")[0].innerHTML);
 	setInterval("AutoSearch()",1000);
+
+	/*
+	$("#comment").keyup(function(event){		
+		if(event.keyCode == 13){		
+			console.log("ttt");
+			sendMessage();
+			event.preventDefault();
+			return false;    
+	    }
+	});*/
+	$("#msg_submit").on("click",function () {
+		console.log("msgsub")
+		if(!$("#comment").val() == "") {
+			sendMessage();			
+		}
+		return false;
+	});
+
+
+	$("#comment").click(function(event){		
+		if(event.keyCode == 13){		
+			console.log("messs")	
+			sendMessage();
+			event.preventDefault();
+			return false;    
+	    }
+	});
+	$("#send").click(function(e) {
+		console.log("meeee");
+	    return e.preventDefault();
+	});
+
+
+
 });
 
 
@@ -276,7 +344,6 @@ init();
 animate();
 startListen();
 
-var socket = io.connect('http://localhost:3000');
 
 function init() {
 	container = document.createElement( 'div' );
@@ -287,7 +354,7 @@ function init() {
     
 	// カメラ
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set(600,200,500);
+	camera.position.set(0,200,600);
 
 	// カメラ追従
 	camera.target = new THREE.Vector3(0,100,0);
@@ -331,7 +398,7 @@ function init() {
 
 	scene.add( new THREE.AmbientLight( 0x777777 ) );
 
-	var light = new THREE.DirectionalLight( 0xffefef, 1 );
+	var light = new THREE.DirectionalLight( 0xffefef, 3 );
 	light.position.set(500,250,500);
 	light.castShadow = true;
 	light.shadowMapWidth = 1024;
@@ -345,8 +412,31 @@ function init() {
 	
 	
 	// ペットモデルの読み込み
+
 	/*var loader = new THREE.JSONLoader( true );
 	loader.load( '<%= modelNo %>', function( geometry ) {
+	var config = {
+		baseUrl: "models/bear/",
+		body: "standandwalk.json", //models/bear/standandwalk.json
+		skins: [ "bear_body2.png" ] //models/bear/skins/テクスチャファイル(複数可)
+	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
+	character = new THREE.petMotion();
+	character.scale = 20;
+	console.log(character);
+	character.onLoadComplete = function() {
+		setupAnimations( character );
+	}
+	character.loadParts( config );
+	scene.add( character.root );
+	/*
+	modelReader("/model_json/ID_1/animal1.json","/img/ID_1/bear_body2.jpg",model_num);
+	model_num++;
+	
+	modelReader("/model_json/ID_1/animal1.json","/img/ID_1/bear_body2.jpg",0);
+	model_num++;
+	/*
+	var loader = new THREE.JSONLoader( true );
+	loader.load( "/model_json/animal1.json", function( geometry ) {
 		var texture = THREE.ImageUtils.loadTexture( '/img/bear_body2.jpg' );
 		texture.anisotropy = renderer.getMaxAnisotropy();
 		mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true, map: texture} ) );
@@ -421,6 +511,59 @@ function init() {
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
+function setupAnimations( character ) { //アニメーションを格納します
+
+	var generateCallback = function( animationName ) {
+
+		return function () { character.setAnimation( animationName ); };
+
+	}
+
+	var animations = character.meshBody.geometry.animations;
+	//console.log(animations.walk);
+
+	for ( var a in animations ) {
+
+		playbackConfig[ a ] = generateCallback( a );
+
+	}
+
+}
+
+// ペットモデルの読み込み
+function modelReader(model,tex,num) {
+	prevTime[num] = Date.now();
+	var loader = new THREE.JSONLoader( true );
+	loader.load( model, function( geometry ) {
+		var texture = THREE.ImageUtils.loadTexture( tex );
+		texture.anisotropy = renderer.getMaxAnisotropy();
+		mesh[num] = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true, map: texture} ) );
+		//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } ) );
+		//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060} ) );
+		mesh[num].scale.set( 20, 20, 20 );
+		mesh[num].castShadow = true;
+		scene.add( mesh[num] );
+		animation[num] = new THREE.MorphAnimation( mesh[num] );
+		animation[num].play();
+	} );
+}/*
+// ペットモデルの読み込み
+function modelReader(model,tex,id) {
+	var loader = new THREE.JSONLoader( true );
+	loader.load( model, function( geometry ) {
+		var texture = THREE.ImageUtils.loadTexture( tex );
+		texture.anisotropy = renderer.getMaxAnisotropy();
+		mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true, map: texture} ) );
+		//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } ) );
+		//mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x606060} ) );
+		mesh.scale.set( 20, 20, 20 );
+		mesh.castShadow = true;
+		scene.add( mesh );
+		animation = new THREE.MorphAnimation( mesh );
+		animation.play();
+	} );
+}*/
+
 
 function setupAnimations( character ) { //アニメーションを格納します
 
@@ -454,19 +597,30 @@ function onWindowResize() {
 
 //
 function animate() {
-
-	requestAnimationFrame( animate );
+	var ua = window.navigator.userAgent.toLowerCase();
+	if(ua.indexOf('firefox') != -1) {
+		mozRequestAnimationFrame( animate );
+	}else if(ua.indexOf('chrome') != -1) {
+		requestAnimationFrame( animate );
+	}else {
+		requestAnimationFrame( animate );
+	}
 
 	render();
-	stats.update();
-		
-	if(!checkMouseOnElement(mouseXY,"cse") && !checkMouseOnElement(mouseXY,"auto_cse")) {
+
+	//stats.update();
+
+
+	if(!checkMouseOnElement(mouseXY,"cse") && 
+		!checkMouseOnElement(mouseXY,"auto_cse") &&
+		 !checkMouseOnElement(mouseXY,"status")) {
 		controls.enabled = true;
 		controls.update();
 	}else {
 		controls.enabled = false;
 		//message_balloon("てすと！");
 	}
+
 	//console.log("anim");
 }
 
@@ -476,7 +630,6 @@ function onSearch() {
 	prev_search_time = Date.now();
 	socket.emit("send_word",word,id);
 }
-
 var radius = 600;
 
 var prevTime = Date.now();
@@ -501,14 +654,15 @@ function rand02() { //追加
 setInterval("rand01()",3000);
 setInterval("rand02()",2000); //追加
 
+/*
 function render() {
 
 	// カメラ追従
-	/*
-	camera.position.set(character.root.position.x - 500, character.root.position.y + 200, character.root.position.z +  500);
-	camera.target = character.root.position;
-	camera.lookAt( camera.target );
-	*/
+	
+	//camera.position.set(character.root.position.x - 500, character.root.position.y + 200, character.root.position.z +  500);
+	//camera.target = character.root.position;
+	//camera.lookAt( camera.target );
+	
 
 	if ( character ) { //animation→character
 
@@ -518,9 +672,9 @@ function render() {
 
 		prevTime = time;*/
 
-		var delta = clock.getDelta();
+		//var delta = clock.getDelta();
 
-		character.update( delta );
+		//character.update( delta );
 
 		/*
 		var max = 96;
@@ -538,7 +692,11 @@ function render() {
 		}
 		*/
 		
-		/*if(mesh.rotation.y < (Math.PI * 2)) {
+/*
+		prevTime = time;
+		
+		if(mesh.rotation.y < (Math.PI * 2)) {
+
 			if(rand == 0) mesh.rotation.y += 0.01;
 			else if(rand == 1) mesh.rotation.y -= 0.01;
 			else {}
@@ -546,41 +704,152 @@ function render() {
 			mesh.rotation.y=0;
 		}
 		mesh.position.x += Math.sin(mesh.rotation.y);
-		mesh.position.z += Math.cos(mesh.rotation.y);*/
+		mesh.position.z += Math.cos(mesh.rotation.y);
 
 		if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする
 			if(character.activeAnimation == "walk") {
 				character.setAnimation("stand");
 			}
-		} else {
-
-			if(character.activeAnimation == "stand") { //モーションを歩くものにする
-				character.setAnimation("walk");
-			}
-
-			if(character.root.rotation.y < (Math.PI * 2)) {
-	            if(rand1 == 0)
-	            	character.root.rotation.y += 0.01;
-	            else if(rand1 == 1)
-	            	character.root.rotation.y -= 0.01;
-	       		else {}
-	        } else {
-	            character.root.rotation.y = 0;
-	        }
-
-	        character.root.position.x += 0.5*Math.sin(character.root.rotation.y);
-			character.root.position.z += 0.5*Math.cos(character.root.rotation.y);
-
-		}
+		mesh.position.z += Math.cos(mesh.rotation.y);		
 
 	}
+	renderer.render( scene, camera );
+} 
+*/
+/*
+function render() {
+	//camera.lookAt( camera.target );
 
+	if ( animation[0] ) {
+		//console.log("rend0");
+		var time = Date.now();
+
+		animation[0].update( time - prevTime );
+
+		prevTime = time;
+		
+		if(mesh[0].rotation.y < (Math.PI * 2)) {
+
+			if(rand == 0) mesh[0].rotation.y += 0.01;
+			else if(rand == 1) mesh[0].rotation.y -= 0.01;
+			else {}
+		}else {
+			mesh[0].rotation.y=0;
+		}
+		mesh[0].position.x += Math.sin(mesh[0].rotation.y);
+		mesh[0].position.z += Math.cos(mesh[0].rotation.y);		
+
+	}
+	if(Model_Emit_Flag) {
+		//console.log("send_model_pos"+mesh[0].position+mesh[0].position.x);
+		/*
+		socket.json.emit("send_model",
+		{"room" : joinedRoom, "name": $("#username")[0].innerHTML,"model_id":model_id});
+		
+		//socket.emit("get_connect_count",$("#userid")[0].innerHTML);
+		/*socket.json.emit("send_model_pos",
+		{"connect_num":connect_num, "position":mesh[0].position,"rotation":mesh[0].rotation});
+		
+		socket.json.emit("send_model_pos",
+		{"room":joinedRoom,"connect_num":1, "position":mesh[0].position,"rotation":mesh[0].rotation.y});
+		
+
+		/*
+		for(var i = 1;i < model_num;i++) {
+			OtherModelRender(i,)
+		
+	}
 	renderer.render( scene, camera );
 
 }
+*/
+
+var Position_Fix_Flag = false;function simplifyRadian(rad) {
+    if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
+    else return rad;
+}function render() {
+    
+    if ( character ) { //animation→character
+        
+        var delta = clock.getDelta();        character.update( delta );
+        //中心からの二乗距離
+        var far = Math.sqrt(Math.pow(character.root.position.x,2)+Math.pow(character.root.position.z,2));
+        //符号        
+        
+        //console.log(sign);
+        if(Position_Fix_Flag) {                character.root.rotation.y = simplifyRadian(character.root.rotation.y);            var direct;
+            if(character.root.position.x >= 0 && character.root.position.z >= 0) {
+                direct = (Math.acos(Math.abs(character.root.position.z)/far) + Math.PI);
+                console.log("1,1");
+            }else if(character.root.position.x < 0 && character.root.position.z >= 0) {
+                direct = (Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("-1,1");
+            }else if(character.root.position.x < 0 && character.root.position.z < 0) {                
+                direct = (Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("-1,-1");
+            }else if(character.root.position.x >= 0 && character.root.position.z < 0) {
+                direct = (2*Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("1,-1");
+            }else{}
+            if(    Math.abs(simplifyRadian(direct) - character.root.rotation.y) > 0.1 ){
+                
+                character.root.rotation.y += 0.01;
+                character.root.position.x += Math.sin(character.root.rotation.y);
+                character.root.position.z += Math.cos(character.root.rotation.y);
+                
+            }else {
+                console.log("inin");
+                character.root.position.x += Math.sin(character.root.rotation.y);
+                character.root.position.z += Math.cos(character.root.rotation.y);
+                if(far < 320) {
+                    console.log("out");
+                    Position_Fix_Flag = false;                
+                }
+            }
+            
+        }
+        else if(far > 350 && !Position_Fix_Flag) {
+            console.log("in");
+            Position_Fix_Flag = true;
+            FixRoot = character.root.rotation.y;
+            character.setAnimation("walk");
+        }else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする            
+            if(character.activeAnimation == "walk") {
+                character.setAnimation("stand");
+            }
+        } else {            if(character.activeAnimation == "stand") { //モーションを歩くものにする
+                character.setAnimation("walk");
+            }            if(character.root.rotation.y < (Math.PI * 2)) {
+                if(rand1 == 0)
+                    character.root.rotation.y += 0.01;
+                   else if(rand1==1)
+                       character.root.rotation.y -= 0.01;
+                   else {}                   
+            } else {
+                character.root.rotation.y = 0;
+            }            character.root.position.x += Math.sin(character.root.rotation.y);
+            character.root.position.z += Math.cos(character.root.rotation.y);    
+        }            }    renderer.render( scene, camera );} 
+
+function OtherModelRender(num,position_x,position_z,rotation_y) {
+	
+	if ( animation[num] ) {
+		//console.log("other"+position.x);
+		var time = Date.now();
+		animation[num].update( time - prevTime[num] );
+		prevTime[num] = time;
+		
+		mesh[num].rotation.y = rotation_y;
+
+		mesh[num].position.x = position_x
+		mesh[num].position.z = position_z
+		//console.log("mesh"+rotation_y +" "+mesh[num].rotation.y);
+	}
+	//renderer.render( scene, camera );
+}
 
 // キーボードのキーが押された時
-var mov_distance = 3;
+var mov_distance = 3;//変更はただ変数にしていじりやすくしただけです!!!
 document.onkeydown = function (e) {
 	var key = e.keyCode;
 	//console.log(key);
@@ -641,9 +910,14 @@ function startListen() {
 
 }
 
+// えさボタンがおされたとき
+function food() {
+	var id = $("#userid")[0].innerHTML;
+	socket.emit("food", id);
+}
+
 var timeOutId_b2 = 0;
 function message_balloon(str) {
-		console.log("mes");
 		timeOutId_b2 = clearTimeout();
 		b_2();
 		$("#pet_baloon").showBalloon({
@@ -672,7 +946,6 @@ function message_balloon(str) {
 
 function b_2( ) {
 	try{$("#pet_baloon").hideBalloon();}catch(e){}
-	console.log("b2");
 }
 
 var autoFlag = true;
@@ -685,11 +958,30 @@ function stopAuto() {
 function AutoSearch() {	
 	if(autoFlag && (Date.now() - prev_search_time) > searchTimeSpan) {
 		//customSearchControl.execute("auto");
-		console.log("autoSearch");
 		socket.emit("pull_word",$("#userid")[0].innerHTML);
 		prev_search_time = Date.now();
 	}
 }
+var joinedRoom;
+function makeRoom() {
+	joinedRoom = $("#userid")[0].innerHTML;
+	socket.json.emit('init', { 'room': joinedRoom, 'name': $("#username")[0].innerHTML});
+	$("#room_state")[0].innerHTML = "ルーム作成完了 id:"+joinedRoom;
+	$("#chat_view").removeClass("hide");
+	$("#chat_view").addClass("show");
+
+}
+var Model_Emit_Flag = false;
+function joinRoom() {
+	joinedRoom = $("#joinRoomID").val();
+	socket.json.emit("join", {"room":joinedRoom , "user":$("#userid")[0].innerHTML ,
+		"name":$("#username")[0].innerHTML});
+	Model_Emit_Flag = true;
+	socket.json.emit("send_model",
+		{"room" : joinedRoom, "name": $("#username")[0].innerHTML,"model_id":model_id});
+	console.log(model_id);
+}
+
 socket.on("post_word", function (word) {
 	var sw = word + " とは"	
    	customSearchControl_auto.execute(sw);
@@ -707,6 +999,61 @@ socket.on("update_hungry_by_button", function(hungry, remark) {
 socket.on("update_hungry", function(hungry){
 	$('#hungry')[0].innerHTML = (hungry).toString(10);
 })
+
+socket.on('disconnect', function () {
+	console.log('disconnected');
+});
+
+function sendMessage() {
+	console.log($("#comment")[0].value);
+	socket.json.emit("send_message",
+		{"room" : joinedRoom, "name": $("#username")[0].innerHTML, "comment":$("#comment")[0].value});
+	$("#comment")[0].value = "";
+}
+
+$("#msg_submit").on("click",function () {
+        if(!$("#message").val() == "") {
+          sendMessage();
+        }
+      });
+
+
+socket.on("room_message",function (message){
+	console.log("onroommes");
+	$("#room_state")[0].innerHTML = "ルーム作成完了 id:"+joinedRoom;
+	$("#chat_view").removeClass("hide");
+
+	$("#chat_list").append("<div class='msg'>" + message + "</div>");
+	var scrollHeight = document.getElementById("chat_list").scrollHeight;
+	document.getElementById("chat_list").scrollTop = scrollHeight;
+});
+/*
+socket.on("send_model",function(req) {
+    	chat.to(req.room).emit("room_model",req.model_id);
+    });
+
+    socket.on("send_model_pos",function(req) {
+    	chat.to(req.room).emit("room_model_pos",req);
+    });
+*/
+socket.on("room_model",function(req) {
+	console.log("on_room_model");
+	Model_Emit_Flag = true;
+	modelReader("/model_json/ID_1/animal1.json","/img/ID_1/bear_body2.jpg",1);
+	model_num++;
+});
+
+socket.on("room_model_pos",function(req) {
+	//OtherModelRender(req.connect_num,req.position,req.rotation);
+	//console.log("rmp"+req.rotation+req.position.x+req.position.z);
+
+	OtherModelRender(1,req.position.x,req.position.z,req.rotation);
+});
+socket.on("ret_connect_count",function(req) {
+	connect_num = req;
+});
+
+
 </script>
 </body>
 </html>
