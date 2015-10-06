@@ -10,11 +10,17 @@
 	<title>SidePet - ペット作成</title>
 </head>
 <body>
-
+	<header>
+        <nav>
+            <div class="nav-wrapper orange darken-1">
+                <a href="/" class="brand-logo"><img src="/img/SidePet_WhiteText.png" alt="SidePet" width="150px"></a>
+            </div>
+        </nav>
+    </header>
 	<div class="container">
-		<p>ログインしました(ID: <%= userid %>)</p>
-		<p>ペットを作成しましょう</p>
 		<h1>ペット登録ページ</h1>
+		<p>ログインしました(ID: <%= userid %>)</p>
+		<p>ペットを作成しましょう!</p>
 		
 		<form method="post" action="./pet_register">
 			<div>
@@ -26,14 +32,33 @@
 				<input type="text" name="petname" placeholder="ペット名" required>
 			</div>
 			<div>
-				<p>モデル</p>
+				<p>ペットの種類</p>
 				<p>
 					<input type="radio" name="modelNo" value="0" id="model0">
 					<label for="model0">クマ</label>
 				</p>
 				<p>
 					<input type="radio" name="modelNo" value="1" id="model1">
-					<label for="model1">なんか</label>
+					<label for="model1">ネコ</label>
+				</p>
+				<p>
+					<input type="radio" name="modelNo" value="2" id="model2">
+					<label for="model2">ウサギ</label>
+				</p>
+			</div>
+			<div>
+				<p>ペットの色</p>
+				<p>
+					<input type="radio" name="modelSkin" value="0" id="skin0">
+					<label for="skin0">クマ</label>
+				</p>
+				<p>
+					<input type="radio" name="modelSkin" value="1" id="skin1">
+					<label for="skin1">ネコ</label>
+				</p>
+				<p>
+					<input type="radio" name="modelSkin" value="2" id="skin2">
+					<label for="skin2">ウサギ</label>
 				</p>
 			</div>
 			<br>
@@ -41,6 +66,5 @@
                 <button type="submit" class="waves-effect waves-light btn">作成!</button>
             </div>
 		</form>
-		<p><a href="/logout">ログアウトする</a></p>
 	</div>
 </body>

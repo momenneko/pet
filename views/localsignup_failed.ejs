@@ -8,43 +8,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
-	<title>ログイン - SidePet</title>
+	<title>新規登録 - SidePet</title>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="nav-wrapper orange darken-1">
-                <a href="/" class="brand-logo"><img src="/img/SidePet_WhiteText.png" alt="SidePet" width="150px"></a>
-            </div>
-        </nav>
-    </header>
     <div class="container">
-    	<h1>ログイン</h1>
-    	<div class="row">
+        <h1>新規登録</h1>
+        <div class="row">
+            <div class="card-panel red accent-3" style="opacity: .7"><span class="white-text">ERROR: <%= err_message %></span></div>
             <div class="col s6">
-                <p>他のサービスでログイン</p>
+                <p>ソーシャルアカウントで新規登録</p>
+                <p><a href="/auth/twitter" class="waves-effect waves-light btn-large" style="background-color: #55acee; text-transform: none;"><i class="fa fa-twitter"></i> Twitterで新規登録</a></p>
                 <br>
-                <p><a href="/auth/twitter" class="waves-effect waves-light btn-large" style="background-color: #55acee; text-transform: none;"><i class="fa fa-twitter"></i> Twitterでログイン</a></p>
-                <br>
-                <p><strong>アカウントをお持ちでない場合は<a href="/signup">新規登録</a></strong></p>
+                <p><strong>アカウントをお持ちの場合は<a href="/login">ログイン</a></strong></p>
             </div>
             <div class="col s6">
-            	<p>SidePetアカウントでログイン</p>
-            	<form action="/locallogin" method="post">
+                <p>SidePetアカウントで新規登録</p>
+                <form action="/localsignup" method="post">
                     <div class="row">
                         <div class="input-field col s12">
                             <input type="text" id="userid" name="userid" class="validate" required>
-                            <label for="userid">User ID</label>
+                            <label for="userid">User ID <span class="teal-text accent-3">(半角英数字)</span></label>
                         </div>
                     </div>
                     <div class="row">
                         <div class="input-field col s12">
                             <input type="password" id="password" name="password" class="validate" required>
-                            <label for="password">Password</label>
+                            <label for="password">Password <span class="teal-text accent-3">(8文字以上32文字以内の半角英数字)</span></label>
                         </div>
                     </div>
                     <div class="row right-align">
-                        <button type="submit" class="waves-effect waves-light btn">ログイン</button>
+                        <button type="submit" class="waves-effect waves-light btn">新規登録</button>
                     </div>
                 </form>
             </div>

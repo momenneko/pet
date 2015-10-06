@@ -11,11 +11,16 @@
 	<title>新規登録 - SidePet</title>
 </head>
 <body>
-<<<<<<< HEAD
+    <header>
+        <nav>
+            <div class="nav-wrapper orange darken-1">
+                <a href="/" class="brand-logo"><img src="/img/SidePet_WhiteText.png" alt="SidePet" width="150px"></a>
+            </div>
+        </nav>
+    </header>
     <div class="container">
         <h1>新規登録</h1>
         <div class="row">
-            <div class="card-panel red accent-3" style="opacity: .7"><span class="white-text">ERROR: <%= err_message %></span></div>
             <div class="col s6">
                 <p>ソーシャルアカウントで新規登録</p>
                 <p><a href="/auth/twitter" class="waves-effect waves-light btn-large" style="background-color: #55acee; text-transform: none;"><i class="fa fa-twitter"></i> Twitterで新規登録</a></p>
@@ -23,7 +28,7 @@
                 <p><strong>アカウントをお持ちの場合は<a href="/login">ログイン</a></strong></p>
             </div>
             <div class="col s6">
-                <p>SidePetアカウントで新規登録</p>
+                <p><img src="/img/SidePet_Cat.png" alt="タイトルロゴ" width="40px">SidePetアカウントで新規登録</p>
                 <form action="/localsignup" method="post">
                     <div class="row">
                         <div class="input-field col s12">
@@ -43,16 +48,6 @@
                 </form>
             </div>
         </div>
-=======
-	<h1>サインアップ</h1>
-	<p>Twitterでログインする</p>
-	<p><a href="/auth/twitter">Sign in with Twitter</a></p>
-	<P>IDpasswordで新規登録(passwordは半角英数字8文字以上32文字以内)</p>
-	<form action="/localsignup" method="post">
-    <div>
-        <label>Userid:</label>
-        <input type="text" name="userid" required>
->>>>>>> 4ad8e2e1d9c5e5e29753ad2dbf2a238f833c05bc
     </div>
 </body>
 </html>

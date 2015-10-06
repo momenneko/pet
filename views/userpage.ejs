@@ -163,7 +163,7 @@
 					<p><a href="/logout"><i class="fa fa-sign-out"></i>ログアウト</a></p>
 					<p><a href="/setting"><i class="fa fa-cog"></i>アカウント設定</a></p>
 					<br>
-					<button class="btn-floating btn-large waves-effect waves-light " onclick="food()">えさ</button>
+					<button class="btn-floating btn-large waves-effect waves-light orange" onclick="food()">えさ</button>
 					
 					<button class="btn-floating btn-large waves-effect waves-light " onclick="food()">ヘルプ</button>
 				</div>
@@ -451,9 +451,9 @@ function init() {
 	} );*/
 
 	var config = {
-		baseUrl: "models/bear/",
-		body: "standandwalk.json", //models/bear/standandwalk.json
-		skins: [ "bear_body2.png" ] //models/bear/skins/テクスチャファイル(複数可)
+		baseUrl: "models/",
+		body: "<%= modelNo %>", //models/bear/standandwalk.json
+		skins: [ "<%= modelSkin %>" ] //models/bear/skins/テクスチャファイル(複数可)
 	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
 	character = new THREE.petMotion();
 	character.scale = 20;
