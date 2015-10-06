@@ -3,12 +3,15 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+	<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
 	<script src="/js/three.min.js"></script>
 	<script src="/js/stats.min.js"></script>
-	<script src="/js/TrackballControls.js"></script>
+	<script src="/js/OrbitControls.js"></script>
 	<script src="/js/Detector.js"></script>
 	<script src="/js/Projector.js"></script>
-	<script src="../pet_talk.js"></script>
 	<script src="/js/position.js"></script>
 	<script src="/js/jquery-1.11.3.min.js"></script>
 	<script src="/js/jquery.balloon.js"></script>
@@ -24,33 +27,21 @@
 			margin: 0px;
 			overflow: hidden;
 		}
-		#status {
+		#status_div {
 			position: absolute;
 			top: 100px;
 			left: 10px;
-			width: 30%;
 			padding: 10px;
-			border: 1px solid #000;
-			background-color: #fff;
-			opacity: 0.8;
+			opacity: 0.9;
+			border-radius: 10px;
 		}
-		#status p {
-			font-size: 1.2em;
-		}
-		#status ul {
-			padding: 0;
-		}
-		#status ul li {
-			list-style-type: none;
-			margin: 5px;
-		}
-		#pet_talk {
+		#searchbox_div {
 			position: absolute;
-			top:100px;
+			top:50px;
 			right:10px;
+			width: 200px;
 			text-align: center;
-			padding: 10px;
-			border: 1px solid #000;
+			padding: 5px;
 			background-color: #fff;
 			opacity: 0.8;
 			border-radius: 10px;
@@ -139,61 +130,67 @@
 </head>
 <body>
 	<!-- ステータス画面 -->
-	<div id="status">
-
-		<p>ペットのステータス</p>
-		<ul>
-			<li>ペットの名前: <%= petname %></li>
-			<li>機嫌: <%= mood %></li>
-			<li>満腹度: <%= hungry %></li>
-		</ul>
-		
-		<p>ユーザー情報</p>
-		<ul>
-			<li id="userid" style="display:none"><%= userid %></li>
-			<li id="username" style="display:none"><%= username %></li>
-			<li>ユーザー名: <%= username %></li>
-			<li>検索ワード: <span id="search_word"></span></li>
-			<li>現在地: <span id="present_location"></span></li>
-		</ul>
-		<span id="room_state">ルーム未作成</span>
-		<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()'/><br>
-		<span "join">ルームに入る</span>
-		<input id="joinRoomID" class="submit_button" type="text"/>
-		<input id="joinButton" type='button' value='ルーム加入' onclick='joinRoom()'/>
-		<div id="chat_view" class="hide">
-			<div id="chat_list"></div>
-			<form>
-				<input id="comment" type="text" value=""/>
-				<input id="msg_submit" class="submit_button" type="submit" value="送信" />
-			 </form>
+	<div class="row" id="status_div">
+		<div class="col s12">
+			<div class="card z-depth-5">
+				<div class="card-content">
+					<span class="card-title black-text">ペットのステータス</span>
+					<ul>
+						<li>ペットの名前: <%= petname %></li>
+						<li>機嫌: <%= mood %></li>
+						<li>満腹度: <span id="hungry"><%= hungry %></p></li>
+					</ul>
+					
+					<span class="card-title black-text">ユーザー情報</span>
+					<ul>
+						<li id="userid" style="display:none"><%= userid %></li>
+						<li>ユーザー名: <%= username %></li>
+						<li>検索ワード: <span id="search_word"><%= history %></span></li>
+						<li>現在地: <span id="present_location"></span></li>
+					</ul>
+					<span id="room_state">ルーム未作成</span>
+					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()'/><br>
+					<span "join">ルームに入る</span>
+					<input id="joinRoomID" class="submit_button" type="text"/>
+					<input id="joinButton" type='button' value='ルーム加入' onclick='joinRoom()'/>
+					<div id="chat_view" class="hide">
+						<div id="chat_list"></div>
+						<form>
+							<input id="comment" type="text" value=""/>
+							<input id="msg_submit" class="submit_button" type="submit" value="送信" />
+						 </form>
+					</div>
+					<p><a href="/logout"><i class="fa fa-sign-out"></i>ログアウト</a></p>
+					<p><a href="/setting"><i class="fa fa-cog"></i>アカウント設定</a></p>
+					<br>
+					<button class="btn-floating btn-large waves-effect waves-light " onclick="food()">えさ</button>
+					
+					<button class="btn-floating btn-large waves-effect waves-light " onclick="food()">ヘルプ</button>
+				</div>
+			</div>
 		</div>
-		<p><a href="/logout">ログアウト</a></p>
-		<p><a href="/setting">アカウント設定</a></p>
 	</div>
 
 	<!-- ペットの会話用ふきだし -->
 	<div id= "pet_baloon"></div>
 	
-
-	<div id="pet_talk">
+	<div id="searchbox_div" class="card z-depth-5">
 		<p id="pet_remark">何について調べますか？</p>
-			<div id="cse">
-			  <script>
-			  (function () {
-			    var cx = '013236806639015361436:jiaaode1dms';
-			    var gcse = document.createElement('script');
-			    gcse.type = 'text/javascript';
-			    gcse.async = true;
-			    gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') +
-			        '//cse.google.com/cse.js?cx=' + cx;
-			    var s = document.getElementsByTagName('script')[0];
-			    s.parentNode.insertBefore(gcse, s);
-			  })();
-			  </script>
-			  <gcse:search></gcse:search>
-			</div>
-		
+		<div id="cse">
+		  <script>
+		  (function () {
+		    var cx = '013236806639015361436:jiaaode1dms';
+		    var gcse = document.createElement('script');
+		    gcse.type = 'text/javascript';
+		    gcse.async = true;
+		    gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') +
+		        '//cse.google.com/cse.js?cx=' + cx;
+		    var s = document.getElementsByTagName('script')[0];
+		    s.parentNode.insertBefore(gcse, s);
+		  })();
+		  </script>
+		  <gcse:search></gcse:search>
+		</div>
   	</div>
   	<div id="auto_search">
   		<span id="auto_word" style="text-align: center"></span><input id="stop_auto" type='button' value='停止' onclick='stopAuto()'/>
@@ -268,7 +265,6 @@ var playbackConfig = {
 var prevTime = [];
 prevTime[0] = Date.now();
 
-
 var KEY_CODE = {
 	UP: 38,
 	DOWN: 40,
@@ -276,6 +272,7 @@ var KEY_CODE = {
 	RIGHT: 39
 };
 var mouseXY =[0,0];
+
 var socket = io.connect('http://localhost:3000');
 
 var prev_search_time = Date.now();
@@ -360,7 +357,7 @@ function init() {
 	camera.position.set(0,200,600);
 
 	// カメラ追従
-	camera.target = new THREE.Vector3( 0, 150, 0 );
+	camera.target = new THREE.Vector3(0,100,0);
 
 	//
 	
@@ -371,11 +368,14 @@ function init() {
 	
 	// マウスのトラックボールのコントロール
 	
-	controls = new THREE.TrackballControls( camera );
+	controls = new THREE.OrbitControls( camera );
 	
 	controls.rotateSpeed = 1.0;
 	controls.zoomSpeed = 1.2;
 	controls.panSpeed = 0.8;
+
+	controls.minPolarAngle = 0; //追加
+	controls.maxPolarAngle = Math.PI / 2; //追加、これで地面方向の裏側は見えなくなる
 
 	controls.noZoom = false;
 	controls.noPan = false;
@@ -383,7 +383,7 @@ function init() {
 	controls.minDistance = 200;
 	controls.maxDistance = 1000;
 	
-	controls.target = new THREE.Vector3(0, 100, 100);
+	controls.target = new THREE.Vector3(200,150,100);
 
 	controls.staticMoving = true;
 	controls.dynamicDampingFactor = 0.3;
@@ -398,8 +398,8 @@ function init() {
 
 	scene.add( new THREE.AmbientLight( 0x777777 ) );
 
-	var light = new THREE.DirectionalLight( 0xffefef, 2 );
-	light.position.set(200,250,500);
+	var light = new THREE.DirectionalLight( 0xffefef, 3 );
+	light.position.set(500,250,500);
 	light.castShadow = true;
 	light.shadowMapWidth = 1024;
 	light.shadowMapHeight = 1024;
@@ -412,6 +412,9 @@ function init() {
 	
 	
 	// ペットモデルの読み込み
+
+	/*var loader = new THREE.JSONLoader( true );
+	loader.load( '<%= modelNo %>', function( geometry ) {
 	var config = {
 		baseUrl: "models/bear/",
 		body: "standandwalk.json", //models/bear/standandwalk.json
@@ -445,19 +448,32 @@ function init() {
 		animation = new THREE.MorphAnimation( mesh );
 		animation.play();
 
-	} );
-	*/
+	} );*/
 
+	var config = {
+		baseUrl: "models/bear/",
+		body: "standandwalk.json", //models/bear/standandwalk.json
+		skins: [ "bear_body2.png" ] //models/bear/skins/テクスチャファイル(複数可)
+	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
+	character = new THREE.petMotion();
+	character.scale = 20;
+	console.log(character);
+	character.onLoadComplete = function() {
+		setupAnimations( character );
+	}
+	character.loadParts( config );
+	scene.add( character.root );
+	
 	//
 
 	// 地面表示
 	var gt = THREE.ImageUtils.loadTexture( "img/grasslight-big.jpg" );
-	var gg = new THREE.PlaneBufferGeometry( 3000, 3000 );
+	var gg = new THREE.PlaneBufferGeometry( 4000, 4000 );
 	var gm = new THREE.MeshPhongMaterial( { color: 0xffffff, map: gt } );
 
 	var ground = new THREE.Mesh( gg, gm );
 	ground.rotation.x = - Math.PI / 2;
-	ground.material.map.repeat.set( 8, 8 );
+	ground.material.map.repeat.set( 10, 10 );
 	ground.material.map.wrapS = ground.material.map.wrapT = THREE.RepeatWrapping;
 	ground.receiveShadow = true;
 
@@ -470,7 +486,7 @@ function init() {
 	axis.position.set(0,0,0);
 	scene.add(axis);
 
-	//
+	// 
 
 	// レンダリング
 	renderer = new THREE.WebGLRenderer();
@@ -566,12 +582,31 @@ function modelReader(model,tex,id) {
 }*/
 
 
+function setupAnimations( character ) { //アニメーションを格納します
+
+	var generateCallback = function( animationName ) {
+
+		return function () { character.setAnimation( animationName ); };
+
+	}
+
+	var animations = character.meshBody.geometry.animations;
+	//console.log(animations.walk);
+
+	for ( var a in animations ) {
+
+		playbackConfig[ a ] = generateCallback( a );
+
+	}
+
+}
+
 function onWindowResize() {
 
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 
-	controls.handleResize();
+	//controls.handleResize();
 
 	renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -614,6 +649,8 @@ function onSearch() {
 }
 var radius = 600;
 
+var prevTime = Date.now();
+
 /*var rand = 0;
 function rand01() {
 	rand = Math.floor(3*Math.random());//0,1,2
@@ -636,13 +673,43 @@ setInterval("rand02()",2000); //追加
 
 /*
 function render() {
-	//camera.lookAt( camera.target );
-	if ( animation ) {
 
-		var time = Date.now();
+	// カメラ追従
+	
+	//camera.position.set(character.root.position.x - 500, character.root.position.y + 200, character.root.position.z +  500);
+	//camera.target = character.root.position;
+	//camera.lookAt( camera.target );
+	
+
+	if ( character ) { //animation→character
+
+		/*var time = Date.now();
 
 		animation.update( time - prevTime );
 
+		prevTime = time;*/
+
+		//var delta = clock.getDelta();
+
+		//character.update( delta );
+
+		/*
+		var max = 96;
+		var min = max * (-1);
+		var rotate = 24;
+		if((mesh.rotation.y % (Math.PI * 2)) < 0.0000000000001 || Math.abs((mesh.rotation.y % (Math.PI * 2)) - (Math.PI * 2)) < 0.0000000000001) {
+			mesh.position.z++;
+			if(mesh.rotation.y != 0) mesh.rotation.y = 0;
+		} else if(Math.abs(((mesh.rotation.y % (Math.PI * 2)) - Math.PI)) < 0.0000000000001) {
+			mesh.position.z--;
+			if(mesh.rotation.y != Math.PI) mesh.rotation.y = Math.PI;
+		}
+		if(mesh.position.z == max || mesh.position.z == min) {
+			mesh.rotation.y += Math.PI / rotate;
+		}
+		*/
+		
+/*
 		prevTime = time;
 		
 		if(mesh.rotation.y < (Math.PI * 2)) {
@@ -654,11 +721,18 @@ function render() {
 			mesh.rotation.y=0;
 		}
 		mesh.position.x += Math.sin(mesh.rotation.y);
+		mesh.position.z += Math.cos(mesh.rotation.y);
+
+		if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする
+			if(character.activeAnimation == "walk") {
+				character.setAnimation("stand");
+			}
 		mesh.position.z += Math.cos(mesh.rotation.y);		
 
 	}
 	renderer.render( scene, camera );
-}*/
+} 
+*/
 /*
 function render() {
 	//camera.lookAt( camera.target );
@@ -706,8 +780,8 @@ function render() {
 
 }
 */
-var Position_Fix_Flag = false;
 
+<<<<<<< HEAD
 function simplifyRadian(rad) {
 	if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
 	else return rad;
@@ -782,6 +856,75 @@ function render() {
 	}
 	renderer.render( scene, camera );
 }
+=======
+var Position_Fix_Flag = false;function simplifyRadian(rad) {
+    if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
+    else return rad;
+}function render() {
+    
+    if ( character ) { //animation→character
+        
+        var delta = clock.getDelta();        character.update( delta );
+        //中心からの二乗距離
+        var far = Math.sqrt(Math.pow(character.root.position.x,2)+Math.pow(character.root.position.z,2));
+        //符号        
+        
+        //console.log(sign);
+        if(Position_Fix_Flag) {                character.root.rotation.y = simplifyRadian(character.root.rotation.y);            var direct;
+            if(character.root.position.x >= 0 && character.root.position.z >= 0) {
+                direct = (Math.acos(Math.abs(character.root.position.z)/far) + Math.PI);
+                console.log("1,1");
+            }else if(character.root.position.x < 0 && character.root.position.z >= 0) {
+                direct = (Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("-1,1");
+            }else if(character.root.position.x < 0 && character.root.position.z < 0) {                
+                direct = (Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("-1,-1");
+            }else if(character.root.position.x >= 0 && character.root.position.z < 0) {
+                direct = (2*Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+                console.log("1,-1");
+            }else{}
+            if(    Math.abs(simplifyRadian(direct) - character.root.rotation.y) > 0.1 ){
+                
+                character.root.rotation.y += 0.01;
+                character.root.position.x += Math.sin(character.root.rotation.y);
+                character.root.position.z += Math.cos(character.root.rotation.y);
+                
+            }else {
+                console.log("inin");
+                character.root.position.x += Math.sin(character.root.rotation.y);
+                character.root.position.z += Math.cos(character.root.rotation.y);
+                if(far < 320) {
+                    console.log("out");
+                    Position_Fix_Flag = false;                
+                }
+            }
+            
+        }
+        else if(far > 350 && !Position_Fix_Flag) {
+            console.log("in");
+            Position_Fix_Flag = true;
+            FixRoot = character.root.rotation.y;
+            character.setAnimation("walk");
+        }else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする            
+            if(character.activeAnimation == "walk") {
+                character.setAnimation("stand");
+            }
+        } else {            if(character.activeAnimation == "stand") { //モーションを歩くものにする
+                character.setAnimation("walk");
+            }            if(character.root.rotation.y < (Math.PI * 2)) {
+                if(rand1 == 0)
+                    character.root.rotation.y += 0.01;
+                   else if(rand1==1)
+                       character.root.rotation.y -= 0.01;
+                   else {}                   
+            } else {
+                character.root.rotation.y = 0;
+            }            character.root.position.x += Math.sin(character.root.rotation.y);
+            character.root.position.z += Math.cos(character.root.rotation.y);    
+        }            }    renderer.render( scene, camera );} 
+
+>>>>>>> upstream/master
 function OtherModelRender(num,position_x,position_z,rotation_y) {
 	
 	if ( animation[num] ) {
@@ -861,6 +1004,11 @@ function startListen() {
 
 }
 
+// えさボタンがおされたとき
+function food() {
+	var id = $("#userid")[0].innerHTML;
+	socket.emit("food", id);
+}
 
 var timeOutId_b2 = 0;
 function message_balloon(str) {
@@ -936,6 +1084,15 @@ socket.on("post_word", function (word) {
    	//setTimeout('b_2()',2000);
 });
 
+// えさボタンを押したとき表示されている満腹度が増える
+socket.on("update_hungry_by_button", function(hungry, remark) {
+	console.log(hungry);
+	$('#hungry')[0].innerHTML = (hungry).toString(10);
+	message_balloon(remark);
+})
+socket.on("update_hungry", function(hungry){
+	$('#hungry')[0].innerHTML = (hungry).toString(10);
+})
 
 socket.on('disconnect', function () {
 	console.log('disconnected');

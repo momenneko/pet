@@ -2,12 +2,32 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
-	<title>登録完了</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+	<title>登録完了 - SidePet</title>
 </head>
 <body>
-	<h1>アカウント登録が完了しました!</h1>
+	<header>
+		<nav>
+			<div class="nav-wrapper">
+				<a href="/" class="brand-logo">SidePet</a>
+				<a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+				<ul class="right hide-on-med-and-down">
+					<li><a href="/about">about</a></li>
+				</ul>
+				<ul class="side-nav" id="mobile-demo">
+					<li><a href="/logout">Log out</a></li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+	<div class="container">
+		<p>アカウント登録が完了しました!</p>
 
-	<p><a href="/userpage">ユーザーページヘ</a></p>
-	<p><a href="/logout">ログアウトする</a></p>
+		<p><a href="/userpage">ログインしてペットを登録しましょう</a></p>
+	</div>
 </body>
 </html>
