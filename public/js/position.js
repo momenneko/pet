@@ -1,7 +1,7 @@
 function GetElementPos(id) {
 		var elm = document.getElementById(id);
 		// [getBoundingClientRect]を参照する
-		var rect = elm.getBoundingClientRect() ;
+		var rect = elm.getBoundingClientRect();
 
 		// ブラウザの左上からのX座標を取得する
 		var positionX = rect.left ;

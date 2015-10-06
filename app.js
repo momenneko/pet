@@ -206,7 +206,7 @@ var server = app.listen(3000, function () {
 var io = socketio.listen(server);
 
 // 接続されたら、connected!とコンソールにメッセージを表示します。
-io.sockets.on("connection", function (socket) {
+var chat = io.sockets.on("connection", function (socket) {
   console.log("connected");
   //メッセージ受信
   socket.on("send_word",function (data,id) {
@@ -235,15 +235,64 @@ io.sockets.on("connection", function (socket) {
         });
     });
     socket.on("pull_word",function (id) {
-    	console.log("onPull  "+id);
     	mongo.users.findOne({userid: id},function (err,item) {
-    		//console.log(item.history[0].word);
-    		
-    		var index = Math.floor(item.history.length *Math.random());
-    		console.log(item.history[index].word);
-    		socket.emit("post_word",item.history[index].word);
-    		
+    		if(item.history.length != 0) {
+	    		var index = Math.floor(item.history.length *Math.random());    		
+	    		socket.emit("post_word",item.history[index].word);
+    		}
     	});   	
+    });
+    socket.on('init', function(req) {
+        // ※4 クライアントを部屋に入室させる
+        socket.join(req.room);
+        chat.to(req.room).emit('room_message', req.name + " さんが入室");
+    });
+    var connect_count = 0;
+    socket.on("join",function(req) {
+    	socket.join(req.room);
+    	console.log("join!!");
+		chat.to(req.room).emit('room_message', req.name + " さんが入室");
+		/*
+		mongo.users.count({userid: req.user, "count.id": req.user},function (err,length) {
+            //console.log(item.history[0]);
+            if(length === 0) {
+                // 新しく検索したワ
+                connect_count ++;
+                mongo.users.update(
+                    { userid: req.user },
+                    {$push: 
+                        { count : {id : req.user , num : connect_count}                  
+                    }}
+                );
+            } 
+        });*/
+    });
+    /*
+    socket.on("get_connect_count" function(id){
+    	var count;
+    	mongo.users.findOne({userid: id},function (err,item) {
+    		count = item.
+    		if(item.history.length != 0) {
+	    		var index = Math.floor(item.history.length *Math.random());    		
+	    		socket.emit("post_word",item.history[index].word);
+    		}
+    	});   	
+    	socket.emit("ret_connect_count",connect_count);
+    });
+    */
+    socket.on("send_model",function(req) {
+    	console.log("on_send_model"+req.model_id);
+    	chat.to(req.room).emit("room_model",req.model_id);
+    });
+	
+    socket.on("send_model_pos",function(req) {
+    	//console.log("smp "+req.position.x);
+    	chat.to(req.room).json.emit("room_model_pos",
+    		{"connect_num":req.connect_num, "position":req.position,"rotation":req.rotation});
+    });
+	
+    socket.on("send_message",function (req) {
+    	chat.to(req.room).emit("room_message",req.name+" : "+req.comment);
     });
 });
 
