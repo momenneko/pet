@@ -515,6 +515,23 @@ function setupAnimations( character ) { //アニメーションを格納しま�
 }
 
 // ペットモデルの読み込み
+function modelReader(model_id,user_num) {
+	var config = {
+		baseUrl: "models/bear/",
+		body: "bear.json", //models/bear/standandwalk.json
+		skins: [ "bear_brown.png" ] //models/bear/skins/テクスチャファイル(複数可)
+	}; //モデル番号のとこがわからなかったので書き換えてません、すみません
+	character = new THREE.petMotion();
+	character.scale = 20;
+	console.log(character);
+	character.onLoadComplete = function() {
+		setupAnimations( character );
+	}
+	character.loadParts( config );
+	scene.add( character.root );
+}
+
+
 function modelReader(model,tex,num) {
 	prevTime[num] = Date.now();
 	var loader = new THREE.JSONLoader( true );
@@ -696,41 +713,34 @@ function simplifyRadian(rad) {
 	else return rad;
 }
 
-function render() {
-	
+function render() {	
 	if ( character ) { //animation→character
-		console.log("3.3::"+simplifyRadian(3.3)+"  3.1:::"+simplifyRadian(3.1)+"  4.2:::"+simplifyRadian(4.2)+"PI;;;"+Math.PI);
 		var delta = clock.getDelta();
-
 		character.update( delta );
 		//中心からの二乗距離
 		var far = Math.sqrt(Math.pow(character.root.position.x,2)+Math.pow(character.root.position.z,2));
-		//符号
-		var sign2 = (character.root.position.x*character.root.position.y)/Math.abs(character.root.position.x*character.root.position.y);
-		var sign;
-		if(character.root.position.x < 0 && character.root.position.z < 0) sign = 1;
-		else sign = 0;
-		
+		//符号				
 		//console.log(sign);
 		if(Position_Fix_Flag) {	
-
 			character.root.rotation.y = simplifyRadian(character.root.rotation.y);
-			//if(character.root.rotation.y > (Math.PI * 2)) character.root.rotation.y = 0;
-
-			if(Math.abs(simplifyRadian((Math.acos(character.root.position.z/far) + sign2*Math.PI))
-				- character.root.rotation.y)> 0.1 ){
-				/*
-				console.log("rooo: "+Math.abs(simplifyRadian((Math.acos(character.root.position.z/far) 
-				+ Math.PI))
-				- character.root.rotation.y));*/
-				/*
-				console.log("rooo"+Math.abs((Math.acos(character.root.position.z/far) + Math.PI)
-				-character.root.rotation.y)+"::"+Math.abs((Math.acos(character.root.position.x/far) + Math.PI)
-				-character.root.rotation.y));*/
+			var direct;
+			if(character.root.position.x >= 0 && character.root.position.z >= 0) {
+				direct = (Math.acos(Math.abs(character.root.position.z)/far) + Math.PI);
+				console.log("1,1");
+			}else if(character.root.position.x < 0 && character.root.position.z >= 0) {
+				direct = (Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+				console.log("-1,1");
+			}else if(character.root.position.x < 0 && character.root.position.z < 0) {				
+				direct = (Math.acos(Math.abs(character.root.position.z)/far));
+				console.log("-1,-1");
+			}else if(character.root.position.x >= 0 && character.root.position.z < 0) {
+				direct = (2*Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
+				console.log("1,-1");
+			}else{}
+			if(	Math.abs(simplifyRadian(direct) - character.root.rotation.y) > 0.1 ){				
 				character.root.rotation.y += 0.01;
 				character.root.position.x += Math.sin(character.root.rotation.y);
-				character.root.position.z += Math.cos(character.root.rotation.y);
-				
+				character.root.position.z += Math.cos(character.root.rotation.y);				
 			}else {
 				console.log("inin");
 				character.root.position.x += Math.sin(character.root.rotation.y);
@@ -739,55 +749,39 @@ function render() {
 					console.log("out");
 					Position_Fix_Flag = false;				
 				}
-			}
-			/*
-			if(character.root.rotation.y < (Math.PI * 2)) {
-	            //character.root.rotation.y += 0.01;
-	        } else {
-	            character.root.rotation.y = 0;
-	        }*/
-			//character.root.position.x += Math.sin(character.root.rotation.y);
-			//character.root.position.z += Math.cos(character.root.rotation.y);
+			}			
 		}
 		else if(far > 350 && !Position_Fix_Flag) {
 			console.log("in");
 			Position_Fix_Flag = true;
 			FixRoot = character.root.rotation.y;
 			character.setAnimation("walk");
-		}else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする
-			rand2 == 1;
-			/*
+		}else if(rand2 == 0) { //rand=0のとき立ち止まりモーションを立っているものにする			
 			if(character.activeAnimation == "walk") {
 				character.setAnimation("stand");
-			}*/
+			}
 		} else {
-
 			if(character.activeAnimation == "stand") { //モーションを歩くものにする
 				character.setAnimation("walk");
 			}
-
+			
 			if(character.root.rotation.y < (Math.PI * 2)) {
-	            if(rand1 == 0)
+	            if(rand1 == 0) {
 	            	character.root.rotation.y += 0.01;
-	       		else if(rand1==1)
+	            	console.log("undee");
+	            }else if(rand1==1)
 	       			character.root.rotation.y -= 0.01;
 	       		else {}	       		
 	        } else {
 	            character.root.rotation.y = 0;
 	        }
-
-	        character.root.position.x += 3*Math.sin(character.root.rotation.y);
-			character.root.position.z += 3*Math.cos(character.root.rotation.y);	
-		}
-
-		
-
+			
+	        character.root.position.x += Math.sin(character.root.rotation.y);
+			character.root.position.z += Math.cos(character.root.rotation.y);	
+		}		
 	}
-
 	renderer.render( scene, camera );
-
 }
-
 function OtherModelRender(num,position_x,position_z,rotation_y) {
 	
 	if ( animation[num] ) {
