@@ -17,6 +17,8 @@ var re_id = /^[a-z\d]{1,32}$/i;
 // 満腹度の単位量当たりの時間
 var delta_hungry = 30;
 
+// userpageに表示する検索ワード
+var search_word;
 // モデルのjson
 var model_json = ['/model_json/animal1.json'];
 
@@ -99,6 +101,8 @@ app.get('/userpage', function(req, res) {
 			} else {
 
 				var dt = new Date().toFormat('YYYYMMDDHH24MISS');
+				var i = item.history.length;
+
 				// 満腹度と前回ログインした時間を更新
 				if(dt - item.lastLoginUserpage > delta_hungry) {
 					mongo.users.update(
@@ -110,7 +114,12 @@ app.get('/userpage', function(req, res) {
 					{ userid: item.userid },
 					{ $set: { lastLoginUserpage: dt} }
 				);
-				console.log(item.history[0]);
+
+				if(item.history.length != 0) {
+					search_word = item.history[i-1].word + ', ' + item.history[i-2].word + ', ' + item.history[i-3].word + '...';
+				} else {
+					search_word = 'まだ検索履歴がありません'
+				}
 				res.render(
 					'userpage',
 					{
@@ -120,7 +129,7 @@ app.get('/userpage', function(req, res) {
 						mood: item.mood,
 						hungry: item.hungry,
 						modelNo: model_json[item.modelNo],
-						history: item.history
+						history: search_word
 					}
 				);
 
