@@ -92,6 +92,7 @@ app.get('/userpage', function(req, res) {
 	console.log('user page now')
 	if(req.user){
 		mongo.users.findOne({userid: req.user}, function(err, item) {
+			if(err) {return;}
 			if(item.petFlag === undefined) {
 				// ペットがまだ作られていないとき、登録ページへ飛ぶ
 				res.render('pet_create', {userid : req.user });
@@ -109,6 +110,7 @@ app.get('/userpage', function(req, res) {
 					{ userid: item.userid },
 					{ $set: { lastLoginUserpage: dt} }
 				);
+				console.log(item.history[0]);
 				res.render(
 					'userpage',
 					{
@@ -117,7 +119,8 @@ app.get('/userpage', function(req, res) {
 						petname: item.petname,
 						mood: item.mood,
 						hungry: item.hungry,
-						modelNo: model_json[item.modelNo]
+						modelNo: model_json[item.modelNo],
+						history: item.history
 					}
 				);
 
@@ -135,7 +138,8 @@ function update_hungry() {
 // アカウント設定
 app.get('/setting', function(req, res) {
 	if(req.user){
-		mongo.users.findOne({userid: req.user}, function(err, item) {	
+		mongo.users.findOne({userid: req.user}, function(err, item) {
+			if(err) {return;}	
 			res.render(
 				'setting',
 				{
@@ -183,6 +187,7 @@ app.post('/localsignup',function(req, res) {
 		res.render('signup', {err_message: 'IDがありません'});
 	} else {
 		mongo.users.count({userid: req.body.userid}, function(err, length) {
+			if(err) {return;}
 			if(length === 0) { //IDがかぶらない
 				// IDが有効か
 				if(re_id.exec(req.body.userid)) {
@@ -260,6 +265,7 @@ io.sockets.on("connection", function (socket) {
 		*/
 		
 		mongo.users.count({userid: id, "history.word": data},function (err,length) {
+            if(err) {return;}
             //console.log(item.history[0]);
             if(length === 0) {
                 // 新しく検索したワード
@@ -284,7 +290,7 @@ io.sockets.on("connection", function (socket) {
     	//console.log("onPull  "+id);
     	mongo.users.findOne({userid: id},function (err,item) {
     		//console.log(item.history[0].word);
-    		
+    		if(err) {return;}
     		if(item.history.length != 0) {
 	    		var index = Math.floor(item.history.length *Math.random());
 	    		//console.log(item.history[index].word);
@@ -296,6 +302,7 @@ io.sockets.on("connection", function (socket) {
     // えさ
     socket.on("food",function (id) {
     	mongo.users.findOne({userid: id}, function (err, item) {
+    		if(err) {return;}
     		if(item.hungry >= 100) {
     			// 満腹の時
     			console.log('満腹!')
