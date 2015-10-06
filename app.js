@@ -14,6 +14,9 @@ var mongo = require('./mongo');
 var re_pass = /^[a-z\d]{8,32}$/i;
 var re_id = /^[a-z\d]{1,32}$/i;
 
+// 満腹度の単位量当たりの時間
+var delta_hungry = 30;
+
 // モデルのjson
 var model_json = ['/model_json/animal1.json'];
 
@@ -62,14 +65,15 @@ app.post('/pet_register', function(req, res) {
 			{$set: 
 				{ username: req.body.username,
 				  petname: req.body.petname,
-				  petFlag: '1',
+				  petFlag: 1,
 				  modelNo: req.body.modelNo,
-				  mood: '100',
-				  hungry: '100',
+				  mood: 100,
+				  hungry: 30,
 				  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
-				  sleepTime: '2000',
-				  wakeupTime: '600' ,
-				  remark: ['よろしくね', 'おはよう', 'おやすみ'],
+				  sleepTime: 2000,
+				  wakeupTime: 600 ,
+				  remark_freetalk: ['進捗どうですか？', 'おはよう', 'おやすみ'],
+				  remark_hungry: ['はらへだよ','満腹だよ', 'ご飯ありがとう!'],
 				  history: [],
 				  count : []
 				}
@@ -92,13 +96,19 @@ app.get('/userpage', function(req, res) {
 				// ペットがまだ作られていないとき、登録ページへ飛ぶ
 				res.render('pet_create', {userid : req.user });
 			} else {
-				var i = 0;
-				setInterval(function() {
-					//pettalk.update(item.remark[i]);
-					i++;
-					if(i > 4) i %= 5;
-				}, 1000);
-				
+
+				var dt = new Date().toFormat('YYYYMMDDHH24MISS');
+				// 満腹度と前回ログインした時間を更新
+				if(dt - item.lastLoginUserpage > delta_hungry) {
+					mongo.users.update(
+						{ userid: item.userid },
+						{ $inc: { hungry: -1} }
+					);
+				}
+				mongo.users.update(
+					{ userid: item.userid },
+					{ $set: { lastLoginUserpage: dt} }
+				);
 				res.render(
 					'userpage',
 					{
@@ -107,7 +117,6 @@ app.get('/userpage', function(req, res) {
 						petname: item.petname,
 						mood: item.mood,
 						hungry: item.hungry,
-						remark: item.remark[0],
 						modelNo: model_json[item.modelNo]
 					}
 				);
@@ -119,6 +128,9 @@ app.get('/userpage', function(req, res) {
 		res.redirect('/login');
     }
 });
+function update_hungry() {
+
+}
 
 // アカウント設定
 app.get('/setting', function(req, res) {
@@ -269,26 +281,34 @@ io.sockets.on("connection", function (socket) {
         });
     });
     socket.on("pull_word",function (id) {
-    	console.log("onPull  "+id);
+    	//console.log("onPull  "+id);
     	mongo.users.findOne({userid: id},function (err,item) {
     		//console.log(item.history[0].word);
-    		/*
-    		var index = Math.floor(item.history.length *Math.random());
-    		console.log(item.history[index].word);
-    		socket.emit("post_word",item.history[index].word);
-    		*/
+    		
+    		if(item.history.length != 0) {
+	    		var index = Math.floor(item.history.length *Math.random());
+	    		//console.log(item.history[index].word);
+	    		socket.emit("post_word",item.history[index].word);
+    		}
     	});   	
     });
+
     // えさ
-    socket.on("hungry",function (id) {
-    	console.log("hungry");
-    	mongo.users.update(
-			{ userid: id },
-			{$inc: { hungry: 50 }}
-		);
-		mongo.users.findOne({userid: id}, function (err, item) {
-			console.log("hungry を書き換えます");
-			socket.emit("update_hungry", item.hungry);
+    socket.on("food",function (id) {
+    	mongo.users.findOne({userid: id}, function (err, item) {
+    		if(item.hungry >= 100) {
+    			// 満腹の時
+    			console.log('満腹!')
+    			socket.emit("update_hungry_by_button", item.hungry, item.remark_hungry[1]);
+
+    		} else {
+    			console.log('空腹です');
+		    	mongo.users.update(
+					{ userid: id },
+					{ $inc: { hungry: 10}}
+				);
+				socket.emit("update_hungry_by_button", item.hungry, item.remark_hungry[2]);
+		    }
 		});
     });
 });

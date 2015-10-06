@@ -93,7 +93,7 @@ THREE.petMotion = function () {
 
 		if ( this.meshBody ) {
 
-			this.meshBody.updateAnimation( 1000 * delta ); //アニメーション更新
+			this.meshBody.updateAnimation( 500 * delta ); //アニメーション更新
 
 		}
 

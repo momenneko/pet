@@ -14,6 +14,7 @@
     <div class="container">
         <h1>新規登録</h1>
         <div class="row">
+            <div class="card-panel red accent-3" style="opacity: .7"><span class="white-text">ERROR: <%= err_message %></span></div>
             <div class="col s6">
                 <p>他のサービスで新規登録</p>
                 <p><a href="/auth/twitter" class="waves-effect waves-light btn-large" style="background-color: #55acee; text-transform: none;"><i class="fa fa-twitter"></i> Twitterで新規登録</a></p>
@@ -21,18 +22,18 @@
                 <p><strong>アカウントをお持ちの場合は<a href="/login">ログイン</a></strong></p>
             </div>
             <div class="col s6">
-                <p>ID&passwordで新規登録</p>
+                <p>SidePetアカウントで新規登録</p>
                 <form action="/localsignup" method="post">
                     <div class="row">
                         <div class="input-field col s12">
                             <input type="text" id="userid" name="userid" class="validate" required>
-                            <label for="userid">User ID</label>
+                            <label for="userid">User ID <span class="teal-text accent-3">(半角英数字)</span></label>
                         </div>
                     </div>
                     <div class="row">
                         <div class="input-field col s12">
                             <input type="password" id="password" name="password" class="validate" required>
-                            <label for="password">Password</label>
+                            <label for="password">Password <span class="teal-text accent-3">(8文字以上32文字以内の半角英数字)</span></label>
                         </div>
                     </div>
                     <div class="row right-align">
