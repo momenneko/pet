@@ -148,9 +148,9 @@
 						<li>検索ワード: <span id="search_word"><%= history %></span></li>
 					</ul>
 					<span id="room_state">ルーム未作成</span>
-					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()'/><br>
+					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()' /><br>
 					<span "join">ルームに入る</span>
-					<input id="joinRoomID" class="submit_button" type="text"/>
+					<input id="joinRoomID" class="submit_button" type="text" placeholder="ここにコメントを入力"/>
 					<input id="joinButton" type='button' value='ルーム加入' onclick='joinRoom()'/>
 					<div id="chat_view" class="hide">
 						<div id="chat_list"></div>
@@ -163,8 +163,7 @@
 					<p><a href="/setting"><i class="fa fa-cog"></i>アカウント設定</a></p>
 					<br>
 					<button class="btn-floating btn-large waves-effect waves-light orange" onclick="food()">えさ</button>
-					
-					<button class="btn-floating btn-large waves-effect waves-light " onclick="food()">ヘルプ</button>
+					<button class="btn-large waves-effect waves-light" onclick="remark()">おはなし</button>
 				</div>
 			</div>
 		</div>
@@ -191,7 +190,7 @@
 		  <gcse:search></gcse:search>
 		</div>
   	</div>
-  	<div id="auto_search">
+  	<div id="auto_search" class="card z-depth-5">
   		<span id="auto_word" style="text-align: center"></span><input id="stop_auto" type='button' value='停止' onclick='stopAuto()'/>
 	  	<div id="auto_cse">
 				  <script>
@@ -290,16 +289,19 @@ window.addEventListener("load", function () {
 	});
 */
 	$("#gsc-i-id1").on("click",function(){
-		console.log("wordclick");
-		if(!$("#gsc-i-id1").val() == "") {		
+		console.log($("#gsc-i-id1").val());
+		console.log($("#gsc-i-id1").val() === "");
+		if(!$("#gsc-i-id1")[0].value === "") {	
+			console.log("nullじゃないよ")	
 		    message_balloon($("#gsc-i-id1")[0].value + "！");
 		    onSearch(); 
 	    }
 	});
 		//検索ボタン
-	$(".gsc-search-button").click(function (){	
+	$(".gsc-search-button").click(function (){
+		console.log($("#gsc-i-id1")[0].val());
 		console.log("a")
-		if(!$("#gsc-i-id1").val() == "") {	
+		if(!$("#gsc-i-id1")[0].value == "") {	
 			message_balloon($("#gsc-i-id1")[0].value + "！");
 			onSearch();  
 		}    
@@ -307,7 +309,7 @@ window.addEventListener("load", function () {
 
 	console.log('onload')
 	//socket.emit("pull_word",$("#userid")[0].innerHTML);
-	setInterval("AutoSearch()",1000);
+	setInterval("AutoSearch()", 1000);
 
 	/*
 	$("#comment").keyup(function(event){		
@@ -643,7 +645,7 @@ function animate() {
 
 	if(!checkMouseOnElement(mouseXY,"cse") && 
 		!checkMouseOnElement(mouseXY,"auto_cse") &&
-		 !checkMouseOnElement(mouseXY,"status")) {
+		 !checkMouseOnElement(mouseXY,"status_div")) {
 		controls.enabled = true;
 		controls.update();
 	}else {
@@ -812,7 +814,7 @@ function render() {
         if(Position_Fix_Flag) {                character.root.rotation.y = simplifyRadian(character.root.rotation.y);            var direct;
             if(character.root.position.x >= 0 && character.root.position.z >= 0) {
                 direct = (Math.acos(Math.abs(character.root.position.z)/far) + Math.PI);
-                console.log("1,1");
+                //console.log("1,1");
             }else if(character.root.position.x < 0 && character.root.position.z >= 0) {
                 direct = (Math.PI-1*Math.acos(Math.abs(character.root.position.z)/far));
                 console.log("-1,1");
@@ -830,7 +832,7 @@ function render() {
                 character.root.position.z += Math.cos(character.root.rotation.y);
                 
             }else {
-                console.log("inin");
+                //console.log("inin");
                 character.root.position.x += Math.sin(character.root.rotation.y);
                 character.root.position.z += Math.cos(character.root.rotation.y);
                 if(far < 320) {
@@ -948,6 +950,12 @@ function food() {
 	socket.emit("food", id);
 }
 
+function remark() {
+	console.log('remark')
+	var id = $("#userid")[0].innerHTML;
+	socket.emit("remark", id);
+}
+
 var timeOutId_b2 = 0;
 function message_balloon(str) {
 		timeOutId_b2 = clearTimeout();
@@ -1015,10 +1023,10 @@ function joinRoom() {
 }
 
 socket.on("post_word", function (word) {
-	var sw = word + " とは"	
+	var sw = word + " とは";
    	customSearchControl_auto.execute(sw);
    	$("#auto_word")[0].innerHTML = sw +"で検索中！"
-   	message_balloon($("#gsc-i-id2").val() + " を自動で調べたよ！");
+   	message_balloon(sw + " を自動で調べたよ！");
    	//setTimeout('b_2()',2000);
 });
 
@@ -1027,11 +1035,19 @@ socket.on("update_hungry_by_button", function(hungry, remark) {
 	console.log(hungry);
 	$('#hungry')[0].innerHTML = (hungry).toString(10);
 	message_balloon(remark);
-})
+});
 socket.on("update_hungry", function(hungry){
 	$('#hungry')[0].innerHTML = (hungry).toString(10);
-})
+});
 
+// 検索した時表示されている検索ワードを更新
+socket.on("update_search_word", function(search_word) {
+	$('#search_word')[0].innerHTML = search_word;
+});
+
+socket.on("update_remark", function(remark) {
+	message_balloon(remark);
+});
 socket.on('disconnect', function () {
 	console.log('disconnected');
 });

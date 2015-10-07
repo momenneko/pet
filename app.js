@@ -154,9 +154,6 @@ app.get('/userpage', function(req, res) {
 		res.redirect('/login');
     }
 });
-function update_hungry() {
-
-}
 
 // アカウント設定
 app.get('/setting', function(req, res) {
@@ -283,6 +280,22 @@ var chat = io.sockets.on("connection", function (socket) {
 	                );
 	            }
 	        });
+	        // userpageに表示されている検索ワードを更新
+	        mongo.users.findOne({userid: id}, function(err, item) {
+				if(err) {return;}	
+				var i = item.history.length;
+				var search_words;
+	            if(item.history.length > 2) {
+					search_word = item.history[i-1].word + ', ' + item.history[i-2].word + ', ' + item.history[i-3].word + '...';
+				} else if(item.history.length === 2) {
+					search_word = item.history[i-1].word + ', ' + item.history[i-2].word;
+				} else if(item.history.length === 1) {
+					search_word = item.history[i-1].word;
+				}else {
+					search_word = 'まだ検索履歴がありません'
+				}
+	        	socket.emit('update_search_word', search_words);
+			});
 		}
     });
     socket.on("pull_word",function (id) {
@@ -306,8 +319,10 @@ var chat = io.sockets.on("connection", function (socket) {
     var connect_count = 0;
     socket.on("join",function(req) {
     	socket.join(req.room);
-    	console.log("join!!");
+    	console.log("join!!");		
 		chat.to(req.room).emit('room_message', req.name + " さんが入室");
+		chat.to(req.room).emit("model_emit",req.room);
+		chat.to(req.room).emit("req_model");
 		/*
 		mongo.users.count({userid: req.user, "count.id": req.user},function (err,length) {
             //console.log(item.history[0]);
@@ -336,22 +351,23 @@ var chat = io.sockets.on("connection", function (socket) {
     	socket.emit("ret_connect_count",connect_count);
     });
     */
-    socket.on("send_model",function(req) {
-    	console.log("on_send_model"+req.model_id);
-    	chat.to(req.room).emit("room_model",req.model_id);
+    	socket.on("send_model",function(req) {
+    	console.log("on_send_model");
+    	chat.json.emit("room_model",
+    		{"room" : req.joinedRoom, "name": req.name,"modelNo":req.modelNo, "modelSkin":req.modelSkin});
     });
-	
+
     socket.on("send_model_pos",function(req) {
     	//console.log("smp "+req.position.x);
     	chat.to(req.room).json.emit("room_model_pos",
-    		{"connect_num":req.connect_num, "position":req.position,"rotation":req.rotation});
+    		{"connect_num":req.connect_num, "position_x":req.position.x,"position_z":req.position.z,"rotation":req.rotation});
     });
 	
     socket.on("send_message",function (req) {
     	chat.to(req.room).emit("room_message",req.name+" : "+req.comment);
-
     });
-        // えさ
+
+    // えさ
     socket.on("food",function (id) {
     	mongo.users.findOne({userid: id}, function (err, item) {
     		if(err) {return;}
@@ -370,5 +386,28 @@ var chat = io.sockets.on("connection", function (socket) {
 		    }
 		});
     });
+    socket.on("remark", function(id) {
+    	console.log("rere")
+    	mongo.users.findOne({userid: id}, function (err, item) {
+    		if(err) {return;}
+    		console.log(rnd);
+    		var rnd = Math.floor(Math.random() * (item.remark_freetalk.length - 1));
+			socket.emit("update_remark", item.remark_freetalk[rnd]);
+		});
+    });
+    /*
+    socket.on("remark_reg", function(id) {
+    	console.log("rere");
+    	mongo.users.update(
+					{ userid: id },
+					{ $inc: { hungry: 10}}
+		);
+    	mongo.users.findOne({userid: id}, function (err, item) {
+    		if(err) {return;}
+    		console.log(item.remark_freetalk[0])
+			socket.emit("update_remark", item.remark_freetalk[0]);
+		});
+    });
+    */
 });
 
