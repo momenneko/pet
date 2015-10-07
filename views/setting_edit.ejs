@@ -10,13 +10,20 @@
 	<title>SidePet - 設定完了</title>
 </head>
 <body>
+	<header>
+        <nav>
+            <div class="nav-wrapper orange darken-1">
+                <a href="/" class="brand-logo"><img src="/img/SidePet_WhiteText.png" alt="SidePet" width="150px"></a>
+            </div>
+        </nav>
+    </header>
 	<div class="container">
 		<h1>設定完了</h1>
 		<p>アカウント設定が完了しました!</p>
 		<p>ユーザー名: <%= username %></p>
 		<p>ペットの名前: <%= petname %></p>
-
-		<p><a href="/userpage">ペットの部屋へ戻る</a></p>
+		
+		<p><a href="/userpage" class="white-text waves-effect waves-light btn-large orange">ペットの部屋へ戻る</a></p>
 	</div>
 </body>
 </html>
