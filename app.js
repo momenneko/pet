@@ -133,6 +133,7 @@ app.get('/userpage', function(req, res) {
 				}else {
 					search_word = 'まだ検索履歴がありません'
 				}
+				console.log(item.modelNo+"::"+item.modelSkin);
 				res.render(
 					'userpage',
 					{
@@ -351,11 +352,26 @@ var chat = io.sockets.on("connection", function (socket) {
     	socket.emit("ret_connect_count",connect_count);
     });
     */
+<<<<<<< HEAD
     	socket.on("send_model",function(req) {
     	console.log("on_send_model");
     	chat.json.emit("room_model",
     		{"room" : req.joinedRoom, "name": req.name,"modelNo":req.modelNo, "modelSkin":req.modelSkin});
     });
+=======
+    /*
+    socket.on("send_model",function(req) {
+    	console.log("on_send_model");
+    	chat.to(req.room).json.emit("room_model",
+    		{"room" : req.joinedRoom, "name": req.name,"modelNo":req.modelNo, "modelSkin":req.modelSkin});
+    });
+	*/
+	socket.on("send_model",function(req) {
+    	console.log("on_send_model");
+    	chat.json.emit("room_model",
+    		{"room" : req.joinedRoom, "name": req.name,"modelNo":req.modelNo, "modelSkin":req.modelSkin});
+    });
+>>>>>>> 24e184c5b8391f43cb8da1035bed66d93f18aa13
 
     socket.on("send_model_pos",function(req) {
     	//console.log("smp "+req.position.x);

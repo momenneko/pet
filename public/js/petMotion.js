@@ -10,7 +10,7 @@ THREE.petMotion = function () {
 
 	this.scale = 1; //大きさ
 	this.animationFPS = 3; //FPS
-
+	console.log(this);
 	this.root = new THREE.Object3D(); //?? 座標を動かすならこいつ
 	//console.log(scope.root);
 
