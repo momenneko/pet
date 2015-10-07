@@ -146,7 +146,6 @@
 						<li id="userid" style="display:none"><%= userid %></li>
 						<li>ユーザー名: <%= username %></li>
 						<li>検索ワード: <span id="search_word"><%= history %></span></li>
-						<li>現在地: <span id="present_location"></span></li>
 					</ul>
 					<span id="room_state">ルーム未作成</span>
 					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()'/><br>
@@ -251,6 +250,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var clock = new THREE.Clock(); //追加
 var container, stats;
+var skycolor;
 var camera, scene, projector, renderer;
 var mesh = [];
 var animation = [];
@@ -297,10 +297,15 @@ window.addEventListener("load", function () {
 	    }
 	});
 		//検索ボタン
-	$(".gsc-search-button").click(function (){		
-		message_balloon($("#gsc-i-id1")[0].value + "！");
-		onSearch();      
+	$(".gsc-search-button").click(function (){	
+		console.log("a")
+		if(!$("#gsc-i-id1").val() == "") {	
+			message_balloon($("#gsc-i-id1")[0].value + "！");
+			onSearch();  
+		}    
 	});
+
+	console.log('onload')
 	//socket.emit("pull_word",$("#userid")[0].innerHTML);
 	setInterval("AutoSearch()",1000);
 
@@ -359,10 +364,34 @@ function init() {
 	// カメラ追従
 	camera.target = new THREE.Vector3(0,100,0);
 
-	//
+	// 背景
+	var hour = new Date().getHours();
+	console.log(hour);
+
+	//時間帯ごとのセット
+	if(hour >= 0 && hour < 5){
+		//夜中
+		skycolor = 0x191970;
+	}
+	else if(hour >=5 && hour < 9){
+		//朝
+		skycolor = 0xafeeee;
+	}
+	else if(hour >= 9 && hour < 16){
+		//昼
+		skycolor = 0x00b9ef;
+	} 
+	else if(hour >=16 && hour < 19){
+		//夕方
+		skycolor = 0xff7f50;
+	}
+	else {
+		//夜中
+		skycolor = 0x191970;
+	} 
 	
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2( 0x00b9ef, 0.0008 );
+	scene.fog = new THREE.FogExp2( skycolor, 0.0008 );
 
 	//
 	
@@ -482,16 +511,17 @@ function init() {
 	//
 
 	// 座標軸表示
+	/*
 	var axis = new THREE.AxisHelper(1000);
 	axis.position.set(0,0,0);
 	scene.add(axis);
-
+	*/
 	// 
 
 	// レンダリング
 	renderer = new THREE.WebGLRenderer();
 	renderer.shadowMapEnabled = true;
-	renderer.setClearColor( 0x00b9ef );
+	renderer.setClearColor( skycolor );
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	container.appendChild(renderer.domElement);
@@ -502,10 +532,10 @@ function init() {
 	stats = new Stats();
 	stats.domElement.style.position = 'absolute';
 	stats.domElement.style.top = '0px';
-	container.appendChild( stats.domElement );
+	//container.appendChild( stats.domElement );
 
 	//
-			//検索でEnter
+	//検索でEnter
 
 
 	window.addEventListener( 'resize', onWindowResize, false );
@@ -626,6 +656,7 @@ function animate() {
 
 function onSearch() {
 	var word = $("#gsc-i-id1")[0].value;
+	console.log(word);
 	var id = $("#userid")[0].innerHTML;
 	prev_search_time = Date.now();
 	socket.emit("send_word",word,id);
@@ -767,7 +798,8 @@ function render() {
 var Position_Fix_Flag = false;function simplifyRadian(rad) {
     if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
     else return rad;
-}function render() {
+}
+function render() {
     
     if ( character ) { //animation→character
         
@@ -965,7 +997,7 @@ function AutoSearch() {
 var joinedRoom;
 function makeRoom() {
 	joinedRoom = $("#userid")[0].innerHTML;
-	socket.json.emit('init', { 'room': joinedRoom, 'name': $("#username")[0].innerHTML});
+	socket.json.emit('init', { 'room': joinedRoom, 'name': '<%= username %>'});
 	$("#room_state")[0].innerHTML = "ルーム作成完了 id:"+joinedRoom;
 	$("#chat_view").removeClass("hide");
 	$("#chat_view").addClass("show");
@@ -974,11 +1006,11 @@ function makeRoom() {
 var Model_Emit_Flag = false;
 function joinRoom() {
 	joinedRoom = $("#joinRoomID").val();
-	socket.json.emit("join", {"room":joinedRoom , "user":$("#userid")[0].innerHTML ,
-		"name":$("#username")[0].innerHTML});
+	socket.json.emit("join", {"room":joinedRoom , "user": "<%= userid %>" ,
+		"name": "<%= username %>"});
 	Model_Emit_Flag = true;
 	socket.json.emit("send_model",
-		{"room" : joinedRoom, "name": $("#username")[0].innerHTML,"model_id":model_id});
+		{"room" : joinedRoom, "name": "<%= username %>", "model_id":model_id});
 	console.log(model_id);
 }
 
@@ -986,7 +1018,7 @@ socket.on("post_word", function (word) {
 	var sw = word + " とは"	
    	customSearchControl_auto.execute(sw);
    	$("#auto_word")[0].innerHTML = sw +"で検索中！"
-   	message_balloon($("#gsc-i-id2")[0].value + " を自動で調べたよ！");
+   	message_balloon($("#gsc-i-id2").val() + " を自動で調べたよ！");
    	//setTimeout('b_2()',2000);
 });
 
@@ -1007,7 +1039,7 @@ socket.on('disconnect', function () {
 function sendMessage() {
 	console.log($("#comment")[0].value);
 	socket.json.emit("send_message",
-		{"room" : joinedRoom, "name": $("#username")[0].innerHTML, "comment":$("#comment")[0].value});
+		{"room" : joinedRoom, "name": "<% username %>", "comment":$("#comment")[0].value});
 	$("#comment")[0].value = "";
 }
 

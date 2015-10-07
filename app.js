@@ -58,6 +58,10 @@ app.get('/login', function(req, res) {
 	res.render('login');
 });
 
+// login失敗
+app.get('/login_failed', function(req, res) {
+	res.render('login_failed');
+});
 // logoutするとindexに戻る
 app.get('/logout', function(req, res){
   	req.logout();
@@ -87,7 +91,7 @@ app.post('/pet_register', function(req, res) {
 				  count : []
 				}
 			}, {upsert:true}, function() {
-			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
+			res.render('pet_register');
 		});
 	} else {
 		// 未入力の項目があるとき
@@ -120,9 +124,13 @@ app.get('/userpage', function(req, res) {
 					{ $set: { lastLoginUserpage: dt} }
 				);
 
-				if(item.history.length != 0) {
+				if(item.history.length > 2) {
 					search_word = item.history[i-1].word + ', ' + item.history[i-2].word + ', ' + item.history[i-3].word + '...';
-				} else {
+				} else if(item.history.length === 2) {
+					search_word = item.history[i-1].word + ', ' + item.history[i-2].word;
+				} else if(item.history.length === 1) {
+					search_word = item.history[i-1].word;
+				}else {
 					search_word = 'まだ検索履歴がありません'
 				}
 				res.render(
@@ -190,7 +198,7 @@ app.post('/setting_edit', function(req, res) {
 // local認証
 app.post('/locallogin',
   passport.authenticate('local', { successRedirect: '/userpage',
-                                   failureRedirect: '/login',
+                                   failureRedirect: '/login_failed',
                                    failureFlash: false })
 );
 // local新規登録
