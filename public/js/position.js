@@ -1,5 +1,6 @@
 function GetElementPos(id) {
 		var elm = document.getElementById(id);
+		//if(elm === null) return [0,0];
 		// [getBoundingClientRect]を参照する
 		var rect = elm.getBoundingClientRect();
 

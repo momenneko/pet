@@ -58,6 +58,10 @@ app.get('/login', function(req, res) {
 	res.render('login');
 });
 
+// login失敗
+app.get('/login_failed', function(req, res) {
+	res.render('login_failed');
+});
 // logoutするとindexに戻る
 app.get('/logout', function(req, res){
   	req.logout();
@@ -87,7 +91,7 @@ app.post('/pet_register', function(req, res) {
 				  count : []
 				}
 			}, {upsert:true}, function() {
-			res.render('pet_register', { username: req.body.username, petname: req.body.petname, modelNo: req.body.modelNo });
+			res.render('pet_register');
 		});
 	} else {
 		// 未入力の項目があるとき
@@ -120,9 +124,13 @@ app.get('/userpage', function(req, res) {
 					{ $set: { lastLoginUserpage: dt} }
 				);
 
-				if(item.history.length != 0) {
+				if(item.history.length > 2) {
 					search_word = item.history[i-1].word + ', ' + item.history[i-2].word + ', ' + item.history[i-3].word + '...';
-				} else {
+				} else if(item.history.length === 2) {
+					search_word = item.history[i-1].word + ', ' + item.history[i-2].word;
+				} else if(item.history.length === 1) {
+					search_word = item.history[i-1].word;
+				}else {
 					search_word = 'まだ検索履歴がありません'
 				}
 				console.log(item.modelNo+"::"+item.modelSkin);
@@ -191,7 +199,7 @@ app.post('/setting_edit', function(req, res) {
 // local認証
 app.post('/locallogin',
   passport.authenticate('local', { successRedirect: '/userpage',
-                                   failureRedirect: '/login',
+                                   failureRedirect: '/login_failed',
                                    failureFlash: false })
 );
 // local新規登録
@@ -301,6 +309,8 @@ var chat = io.sockets.on("connection", function (socket) {
     	socket.join(req.room);
     	console.log("join!!");
 		chat.to(req.room).emit('room_message', req.name + " さんが入室");
+		chat.to(req.room).emit("model_emit",req.room);
+		chat.to(req.room).emit("req_model");
 		/*
 		mongo.users.count({userid: req.user, "count.id": req.user},function (err,length) {
             //console.log(item.history[0]);
@@ -329,20 +339,27 @@ var chat = io.sockets.on("connection", function (socket) {
     	socket.emit("ret_connect_count",connect_count);
     });
     */
+    /*
     socket.on("send_model",function(req) {
-    	console.log("on_send_model"+req.model_id);
-    	chat.to(req.room).emit("room_model",req.model_id);
+    	console.log("on_send_model");
+    	chat.to(req.room).json.emit("room_model",
+    		{"room" : req.joinedRoom, "name": req.name,"modelNo":req.modelNo, "modelSkin":req.modelSkin});
     });
-	
+	*/
+	socket.on("send_model",function(req) {
+    	console.log("on_send_model");
+    	chat.json.emit("room_model",
+    		{"room" : req.joinedRoom, "name": req.name,"modelNo":req.modelNo, "modelSkin":req.modelSkin});
+    });
+
     socket.on("send_model_pos",function(req) {
     	//console.log("smp "+req.position.x);
     	chat.to(req.room).json.emit("room_model_pos",
-    		{"connect_num":req.connect_num, "position":req.position,"rotation":req.rotation});
+    		{"connect_num":req.connect_num, "position_x":req.position.x,"position_z":req.position.z,"rotation":req.rotation});
     });
 	
     socket.on("send_message",function (req) {
     	chat.to(req.room).emit("room_message",req.name+" : "+req.comment);
-
     });
         // えさ
     socket.on("food",function (id) {

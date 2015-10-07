@@ -148,7 +148,6 @@
 						<li id="username" style="display:none"><%= username %></li>						
 						<li>ユーザー名: <%= username %></li>
 						<li>検索ワード: <span id="search_word"><%= history %></span></li>
-						<li>現在地: <span id="present_location"></span></li>
 					</ul>
 					<span id="room_state">ルーム未作成</span>
 					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()'/><br>
@@ -253,7 +252,12 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var clock = new THREE.Clock(); //追加
 var container, stats;
+
 var camera, scene, projector, renderer,renderer2;
+
+var skycolor;
+var camera, scene, projector, renderer;
+
 var mesh = [];
 var animation = [];
 var model_id = "ID_1"; //モデル、テクスチャの判別
@@ -303,10 +307,15 @@ window.addEventListener("load", function () {
 	    }
 	});
 		//検索ボタン
-	$(".gsc-search-button").click(function (){		
-		message_balloon($("#gsc-i-id1")[0].value + "！");
-		onSearch();      
+	$(".gsc-search-button").click(function (){	
+		console.log("a")
+		if(!$("#gsc-i-id1").val() == "") {	
+			message_balloon($("#gsc-i-id1")[0].value + "！");
+			onSearch();  
+		}    
 	});
+
+	console.log('onload')
 	//socket.emit("pull_word",$("#userid")[0].innerHTML);
 	setInterval("AutoSearch()",1000);
 
@@ -369,6 +378,12 @@ function init() {
 	console.log(hour);
 	//時間帯ごとのセット
 	var skycolor;
+
+	// 背景
+	var hour = new Date().getHours();
+	console.log(hour);
+
+	//時間帯ごとのセット
 	if(hour >= 0 && hour < 5){
 		//夜中
 		skycolor = 0x191970;
@@ -389,6 +404,8 @@ function init() {
 		//夜中
 		skycolor = 0x191970;
 	} 
+	
+
 	scene = new THREE.Scene();
 	scene.fog = new THREE.FogExp2( skycolor, 0.0008 );
 
@@ -457,8 +474,8 @@ function init() {
 	character.loadParts( config );
 	scene.add( character.root );
 	*/
-	modelReader("bear/bear.json","bear/skins/bear_brown.png",0);
-	modelReader("bear/bear.json","bear/skins/bear_blue.png",1);
+	modelReader("<%= modelNo %>",[ "<%= modelSkin %>" ],0);
+	//modelReader("bear/bear.json","bear/skins/bear_blue.png",1);
 	//
 
 	// 地面表示
@@ -477,10 +494,11 @@ function init() {
 	//
 
 	// 座標軸表示
+	/*
 	var axis = new THREE.AxisHelper(1000);
 	axis.position.set(0,0,0);
 	scene.add(axis);
-
+	*/
 	// 
 
 	// レンダリング
@@ -506,10 +524,10 @@ function init() {
 	stats = new Stats();
 	stats.domElement.style.position = 'absolute';
 	stats.domElement.style.top = '0px';
-	container.appendChild( stats.domElement );
+	//container.appendChild( stats.domElement );
 
 	//
-			//検索でEnter
+	//検索でEnter
 
 
 	window.addEventListener( 'resize', onWindowResize, false );
@@ -528,7 +546,7 @@ function modelReader(model_name,model_skin,model_num) {
 
 		//console.log(character);
 		characters[model_num].onLoadComplete = function() {
-			//console.log("loCon"+model_num);
+			console.log("loCon"+model_num);
 			setupAnimations( characters[model_num] );
 		}
 		characters[model_num].loadParts( config );
@@ -579,8 +597,8 @@ function animate() {
 	}
 
 	render(0,rand1_1,rand2_1);	
-	render(1,rand1_2,rand2_2);
-	characters[1].animationFPS = 40;		
+	//render(1,rand1_2,rand2_2);
+	//characters[1].animationFPS = 40;		
 	//renderer2.render( scene, camera );
 	//stats.update();
 
@@ -600,6 +618,7 @@ function animate() {
 
 function onSearch() {
 	var word = $("#gsc-i-id1")[0].value;
+	console.log(word);
 	var id = $("#userid")[0].innerHTML;
 	prev_search_time = Date.now();
 	socket.emit("send_word",word,id);
@@ -638,6 +657,14 @@ function rand02() { //追加
 }
 setInterval("rand01()",3000);
 setInterval("rand02()",2000); //追加
+
+var Position_Fix_Flag = false;
+
+function simplifyRadian(rad) {
+	if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
+	else return rad;
+}
+
 function render(model_num,rand_1,rand_2) {
     
     if ( characters[model_num] ) { //animation→characters[model_num]
@@ -646,7 +673,6 @@ function render(model_num,rand_1,rand_2) {
         //中心からの二乗距離
         var far = Math.sqrt(Math.pow(characters[model_num].root.position.x,2)+Math.pow(characters[model_num].root.position.z,2));
         //符号        
-        
         //console.log(sign);
         if(Position_Fix_Flag) {                characters[model_num].root.rotation.y = simplifyRadian(characters[model_num].root.rotation.y);            var direct;
             if(characters[model_num].root.position.x >= 0 && characters[model_num].root.position.z >= 0) {
@@ -701,21 +727,15 @@ function render(model_num,rand_1,rand_2) {
     if(Model_Emit_Flag) {
 		//console.log("send_model_pos"+mesh[0].position+mesh[0].position.x);
 		
-		socket.json.emit("send_model",
-		{"room" : joinedRoom, "name": $("#username")[0].innerHTML,
-		"modelname":model_name,"modelskin":model_skin:model_id});
 		
 		//socket.emit("get_connect_count",$("#userid")[0].innerHTML);
-		/*socket.json.emit("send_model_pos",
-		{"connect_num":connect_num, "position":mesh[0].position,"rotation":mesh[0].rotation});
 		
 		socket.json.emit("send_model_pos",
-		{"room":joinedRoom,"connect_num":1, "position":mesh[0].position,"rotation":mesh[0].rotation.y});
-		
-
+		{"connect_num":connect_num, "position":characters[0].root.position,"rotation":characters[0].root.rotation.y});
 		/*
-		for(var i = 1;i < model_num;i++) {
-			OtherModelRender(i,)
+		socket.json.emit("send_model_pos",
+		{"room":joinedRoom,"connect_num":1, "position":mesh[0].position,"rotation":mesh[0].rotation.y});
+		*/
 		
 	}
 
@@ -723,61 +743,6 @@ function render(model_num,rand_1,rand_2) {
 } 
 
 
-
-/*
-function render() {
-	//camera.lookAt( camera.target );
-
-	if ( animation[0] ) {
-		//console.log("rend0");
-		var time = Date.now();
-
-		animation[0].update( time - prevTime );
-
-		prevTime = time;
-		
-		if(mesh[0].rotation.y < (Math.PI * 2)) {
-
-			if(rand == 0) mesh[0].rotation.y += 0.01;
-			else if(rand == 1) mesh[0].rotation.y -= 0.01;
-			else {}
-		}else {
-			mesh[0].rotation.y=0;
-		}
-		mesh[0].position.x += Math.sin(mesh[0].rotation.y);
-		mesh[0].position.z += Math.cos(mesh[0].rotation.y);		
-
-	}
-	if(Model_Emit_Flag) {
-		//console.log("send_model_pos"+mesh[0].position+mesh[0].position.x);
-		/*
-		socket.json.emit("send_model",
-		{"room" : joinedRoom, "name": $("#username")[0].innerHTML,"model_id":model_id});
-		
-		//socket.emit("get_connect_count",$("#userid")[0].innerHTML);
-		/*socket.json.emit("send_model_pos",
-		{"connect_num":connect_num, "position":mesh[0].position,"rotation":mesh[0].rotation});
-		
-		socket.json.emit("send_model_pos",
-		{"room":joinedRoom,"connect_num":1, "position":mesh[0].position,"rotation":mesh[0].rotation.y});
-		
-
-		/*
-		for(var i = 1;i < model_num;i++) {
-			OtherModelRender(i,)
-		
-	}
-	renderer.render( scene, camera );
-
-}
-*/
-var Position_Fix_Flag = false;
-function simplifyRadian(rad) {
-    if(rad > (Math.PI*2)) return simplifyRadian(rad - (Math.PI*2));
-    else return rad;
-}
-
-//>>>>>>> upstream/master
 function OtherModelRender(num,position_x,position_z,rotation_y) {
 	
 	if ( animation[num] ) {
@@ -912,28 +877,33 @@ function AutoSearch() {
 var joinedRoom;
 function makeRoom() {
 	joinedRoom = $("#userid")[0].innerHTML;
-	socket.json.emit('init', { 'room': joinedRoom, 'name': $("#username")[0].innerHTML});
+	socket.json.emit('init', { 'room': joinedRoom, 'name': '<%= username %>'});
 	$("#room_state")[0].innerHTML = "ルーム作成完了 id:"+joinedRoom;
 	$("#chat_view").removeClass("hide");
 	$("#chat_view").addClass("show");
 
 }
 var Model_Emit_Flag = false;
+var joinMe = false;
 function joinRoom() {
+	console.log("joinroom");
 	joinedRoom = $("#joinRoomID").val();
-	socket.json.emit("join", {"room":joinedRoom , "user":$("#userid")[0].innerHTML ,
-		"name":$("#username")[0].innerHTML});
+	socket.json.emit("join", {"room":joinedRoom , "user": "<%= userid %>" ,
+		"name": "<%= username %>"});
 	Model_Emit_Flag = true;
+	joinMe = true;
+	/*
 	socket.json.emit("send_model",
-		{"room" : joinedRoom, "name": $("#username")[0].innerHTML,"model_id":model_id});
-	console.log(model_id);
+		{"room" : joinedRoom, "name": "<%= username %>","modelNo":"<%= modelNo %>", "modelSkin":[ "<%= modelSkin %>" ]    });
+*/
+
 }
 
 socket.on("post_word", function (word) {
 	var sw = word + " とは"	
    	customSearchControl_auto.execute(sw);
    	$("#auto_word")[0].innerHTML = sw +"で検索中！"
-   	message_balloon($("#gsc-i-id2")[0].value + " を自動で調べたよ！");
+   	message_balloon($("#gsc-i-id2").val() + " を自動で調べたよ！");
    	//setTimeout('b_2()',2000);
 });
 
@@ -954,7 +924,7 @@ socket.on('disconnect', function () {
 function sendMessage() {
 	console.log($("#comment")[0].value);
 	socket.json.emit("send_message",
-		{"room" : joinedRoom, "name": $("#username")[0].innerHTML, "comment":$("#comment")[0].value});
+		{"room" : joinedRoom, "name": "<% username %>", "comment":$("#comment")[0].value});
 	$("#comment")[0].value = "";
 }
 
@@ -983,18 +953,37 @@ socket.on("send_model",function(req) {
     	chat.to(req.room).emit("room_model_pos",req);
     });
 */
+
+socket.on("model_emit",function(room) {
+	/*
+	socket.json.emit("send_model",
+		{"room" : joinedRoom, "name": "<%= username %>","modelNo":"<%= modelNo %>", "modelSkin":[ "<%= modelSkin %>" ]    });*/
+});
+
 socket.on("room_model",function(req) {
 	console.log("on_room_model");
 	Model_Emit_Flag = true;
-	modelReader("/model_json/ID_1/animal1.json","/img/ID_1/bear_body2.jpg",1);
+	console.log(req.modelNo+"::"+req.modelSkin);
+
+	modelReader(req.modelNo,req.modelSkin,1);
+	//render(1,rand1_2,rand2_2);
 	model_num++;
 });
-
+socket.on("req_model",function() {
+	console.log("req_room");
+	if(!joinMe) {
+		console.log("req_roomjoin");
+		socket.json.emit("send_model",
+		{"room" : joinedRoom, "name": "<%= username %>","modelNo":"<%= modelNo %>", "modelSkin":[ "<%= modelSkin %>" ]    }); 
+	}
+});
 socket.on("room_model_pos",function(req) {
 	//OtherModelRender(req.connect_num,req.position,req.rotation);
 	//console.log("rmp"+req.rotation+req.position.x+req.position.z);
-
-	OtherModelRender(1,req.position.x,req.position.z,req.rotation);
+	character[1].position.z = req.position_z;
+	character[1].position.x = req.position_x;
+	character[1].rotation.y = req.rotation;
+	//OtherModelRender(1,req.position.x,req.position.z,req.rotation);
 });
 socket.on("ret_connect_count",function(req) {
 	connect_num = req;
