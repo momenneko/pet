@@ -22,8 +22,14 @@ var delta_hungry = 30;
 
 // userpageに表示する検索ワード
 var search_word;
+
 // モデルのjson
-var model_json = ['/model_json/animal1.json'];
+var model_json = ['bear/bear.json', 'cat/cat.json', 'rabbit/rabbit.json'];
+var skins = [
+	['bear/skins/bear_blue.png', 'bear/skins/bear_brown.png', 'bear/skins/bear_magenta.png'],
+	['cat/skins/cat_gray.png', 'cat/skins/cat_green.png', 'cat/skins/cat_orange.png'],
+	['rabbit/skins/rabbit_grass.png', 'rabbit/skins/rabbit_pink.png', 'rabbit/skins/rabbit_pirple.png']
+];
 
 // local認証のパスワード暗号化キー
 var secretkey = 'tesspassword';
@@ -69,6 +75,7 @@ app.post('/pet_register', function(req, res) {
 				  petname: req.body.petname,
 				  petFlag: 1,
 				  modelNo: req.body.modelNo,
+				  modelSkin: req.body.modelSkin,
 				  mood: 100,
 				  hungry: 30,
 				  lastLoginUserpage: dt.toFormat('YYYYMMDDHH24MISS'),
@@ -118,6 +125,7 @@ app.get('/userpage', function(req, res) {
 				} else {
 					search_word = 'まだ検索履歴がありません'
 				}
+				console.log(item.modelNo+"::"+item.modelSkin);
 				res.render(
 					'userpage',
 					{
@@ -127,6 +135,7 @@ app.get('/userpage', function(req, res) {
 						mood: item.mood,
 						hungry: item.hungry,
 						modelNo: model_json[item.modelNo],
+						modelSkin: skins[item.modelNo][item.modelSkin],
 						history: search_word
 					}
 				);
@@ -191,30 +200,32 @@ app.post('/localsignup',function(req, res) {
 	console.log(req.body);
 	// idが空白
 	if(req.body.userid === '') {
-		console.log('idが空白');
-		res.render('signup');
+		res.render('signup', {err_message: 'IDがありません'});
 	} else {
 		mongo.users.count({userid: req.body.userid}, function(err, length) {
 			if(err) {return;}
 			if(length === 0) { //IDがかぶらない
-				if(re_pass.exec(req.body.password)) {
-					// パスワードOK
-					// パスワード暗号化
-					cipher.update(req.body.password, 'utf8', 'hex');
-					var cipheredPass = cipher.final('hex');
-					mongo.users.insert({userid: req.body.userid, password: cipheredPass});
-					res.render('local_idpass_register');
+				// IDが有効か
+				if(re_id.exec(req.body.userid)) {
+					if(re_pass.exec(req.body.password)) {
+						// パスワードOK
+						// パスワード暗号化
+						cipher.update(req.body.password, 'utf8', 'hex');
+						var cipheredPass = cipher.final('hex');
+						mongo.users.insert({userid: req.body.userid, password: cipheredPass});
+						res.render('local_idpass_register');
+					} else {
+						// パスワードNG
+						res.render('localsignup_failed', {err_message: 'パスワードは8文字以上32文字以下の半角英数字にしてください'});
+					}
 				} else {
-					// パスワードNG
-					console.log('パスワードNG');
-					res.render('signup');
+					// IDが正規表現を満たしていない
+					res.render('localsignup_failed', {err_message: 'IDは1文字以上32文字以下の半角英数字にしてください'});
 				}
 				
 			} else {
 				// 同じIDが登録されている時
-				console.log('同じIDなので登録できませんでした');
-				console.log(length)
-				res.render('signup');
+				res.render('localsignup_failed', {err_message: 'IDを違うものにしてください'});
 			}
 		});
 	}
@@ -225,7 +236,7 @@ app.get('/auth/twitter', passport.authenticate('twitter'));
 // twitter認証のcallback
 app.get('/auth/twitter/callback',
 	passport.authenticate('twitter', { successRedirect: '/userpage',
-                                     failureRedirect: '/login' }));
+                                     failureRedirect: '/login_failed' }));
 
 var server = app.listen(3000, function () {
 	var host = server.address().address;
@@ -243,28 +254,29 @@ var chat = io.sockets.on("connection", function (socket) {
   socket.on("send_word",function (data,id) {
     console.log("on send_word "+id+" data"+ data);
     //console.log(history[0]);
-		
-		mongo.users.count({userid: id, "history.word": data},function (err,length) {
-            if(err) {return;}
-            //console.log(item.history[0]);
-            if(length === 0) {
-                // 新しく検索したワード
-                mongo.users.update(
-                    { userid: id },
-                    {$push: 
-                        { history : {word : data , num : 1}                  
-                    }}
-                );
-            } else {
-                // すでに検索したことのあるワード
-                mongo.users.update(
-                    { userid: id, "history.word": data},
-                    {$inc: 
-                        {"history.$.num" : 1}              
-                    }
-                );
-            }
-        });
+		if(data != "") {
+			mongo.users.count({userid: id, "history.word": data},function (err,length) {
+	            if(err) {return;}
+	            //console.log(item.history[0]);
+	            if(length === 0) {
+	                // 新しく検索したワード
+	                mongo.users.update(
+	                    { userid: id },
+	                    {$push: 
+	                        { history : {word : data , num : 1}                  
+	                    }}
+	                );
+	            } else {
+	                // すでに検索したことのあるワード
+	                mongo.users.update(
+	                    { userid: id, "history.word": data},
+	                    {$inc: 
+	                        {"history.$.num" : 1}              
+	                    }
+	                );
+	            }
+	        });
+		}
     });
     socket.on("pull_word",function (id) {
     	//console.log("onPull  "+id);

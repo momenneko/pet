@@ -10,13 +10,20 @@
 	<title>登録完了</title>
 </head>
 <body>
+	<header>
+        <nav>
+            <div class="nav-wrapper orange darken-1">
+                <a href="/" class="brand-logo"><img src="/img/SidePet_WhiteText.png" alt="SidePet" width="150px"></a>
+            </div>
+        </nav>
+    </header>
 	<div class="container">
-		<h1>登録が完了しました!</h1>
+		<h1>ペットの登録が完了しました!</h1>
 		<p>ユーザー名: <%= username %></p>
 		<p>ペットの名前: <%= petname %></p>
 		<p>モデルの番号: <%= modelNo %></p>
 
-		<p><a href="/userpage">ペットの部屋へ行く</a></p>
+		<p class="waves-effect waves-light btn-large orange"><a href="/userpage" class="white-text">さっそくペットの部屋へ行く</a></p>
 		<p><a href="/logout">ログアウトする</a></p>
 	</div>
 </body>

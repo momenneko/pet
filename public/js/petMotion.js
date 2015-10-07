@@ -10,7 +10,7 @@ THREE.petMotion = function () {
 
 	this.scale = 1; //大きさ
 	this.animationFPS = 3; //FPS
-
+	console.log(this);
 	this.root = new THREE.Object3D(); //?? 座標を動かすならこいつ
 	//console.log(scope.root);
 
@@ -31,7 +31,7 @@ THREE.petMotion = function () {
 
 		// SKINS
 
-		this.skinsBody = loadTextures( config.baseUrl + "skins/", config.skins ); //モデルのテクスチャ config.baseUrl="models/bear/"(現時点)
+		this.skinsBody = loadTextures( config.baseUrl, config.skins ); //モデルのテクスチャ config.baseUrl="models/bear/"(現時点)
 
 		// BODY
 
