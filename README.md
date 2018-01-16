@@ -9,6 +9,7 @@ git clone git@github.com:momenneko/pet.git
 
 ## Usage
 ```
+npm install
 node app.js
 ```
 

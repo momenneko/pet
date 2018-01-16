@@ -6,7 +6,6 @@ var fs = require('fs');
 var crypto = require('crypto');
 var socketio = require("socket.io");
 
-
 var app = express();
 var passport = require('./passport').passport;
 var mongo = require('./mongo');
@@ -53,6 +52,7 @@ app.get('/', function(req, res) {
 app.get('/signup', function(req, res) {
 	res.render('signup');
 });
+
 // loginページ
 app.get('/login', function(req, res) {
 	res.render('login');
@@ -62,6 +62,7 @@ app.get('/login', function(req, res) {
 app.get('/login_failed', function(req, res) {
 	res.render('login_failed');
 });
+
 // logoutするとindexに戻る
 app.get('/logout', function(req, res){
   	req.logout();
@@ -133,7 +134,6 @@ app.get('/userpage', function(req, res) {
 				}else {
 					search_word = 'まだ検索履歴がありません'
 				}
-				console.log(item.modelNo+"::"+item.modelSkin);
 				res.render(
 					'userpage',
 					{
@@ -201,8 +201,6 @@ app.post('/locallogin',
 );
 // local新規登録
 app.post('/localsignup',function(req, res) {
-	console.log(req.body.userid);
-	console.log(req.body);
 	// idが空白
 	if(req.body.userid === '') {
 		res.render('signup', {err_message: 'IDがありません'});
@@ -245,9 +243,7 @@ app.get('/auth/twitter/callback',
 
 var server = app.listen(3000, function () {
 	var host = server.address().address;
-	var port = server.address().port;
-	
-	console.log('Example app listening at http://%s:%s', host, port);
+	var port = server.address().port;	
 });
 
 var io = socketio.listen(server);
@@ -382,11 +378,9 @@ var chat = io.sockets.on("connection", function (socket) {
     		if(err) {return;}
     		if(item.hungry >= 100) {
     			// 満腹の時
-    			console.log('満腹!')
     			socket.emit("update_hungry_by_button", item.hungry, item.remark_hungry[1]);
 
     		} else {
-    			console.log('空腹です');
 		    	mongo.users.update(
 					{ userid: id },
 					{ $inc: { hungry: 10}}
@@ -396,10 +390,8 @@ var chat = io.sockets.on("connection", function (socket) {
 		});
     });
     socket.on("remark", function(id) {
-    	console.log("rere")
     	mongo.users.findOne({userid: id}, function (err, item) {
     		if(err) {return;}
-    		console.log(rnd);
     		var rnd = Math.floor(Math.random() * (item.remark_freetalk.length - 1));
 			socket.emit("update_remark", item.remark_freetalk[rnd]);
 		});

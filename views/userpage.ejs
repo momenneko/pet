@@ -299,25 +299,19 @@ window.addEventListener("load", function () {
 	});
 */
 	$("#gsc-i-id1").on("click",function(){
-		console.log($("#gsc-i-id1").val());
-		console.log($("#gsc-i-id1").val() === "");
-		if(!$("#gsc-i-id1")[0].value === "") {	
-			console.log("nullじゃないよ")	
+		if(!$("#gsc-i-id1")[0].value === "") {		
 		    message_balloon($("#gsc-i-id1")[0].value + "！");
 		    onSearch(); 
 	    }
 	});
 		//検索ボタン
 	$(".gsc-search-button").click(function (){
-		console.log($("#gsc-i-id1")[0].val());
-		console.log("a")
 		if(!$("#gsc-i-id1")[0].value == "") {	
 			message_balloon($("#gsc-i-id1")[0].value + "！");
 			onSearch();  
 		}    
 	});
 
-	console.log('onload')
 	//socket.emit("pull_word",$("#userid")[0].innerHTML);
 	setInterval("AutoSearch()", 1000);
 
@@ -331,7 +325,6 @@ window.addEventListener("load", function () {
 	    }
 	});*/
 	$("#msg_submit").on("click",function () {
-		console.log("msgsub")
 		if(!$("#comment").val() == "") {
 			sendMessage();			
 		}
@@ -340,15 +333,13 @@ window.addEventListener("load", function () {
 
 
 	$("#comment").click(function(event){		
-		if(event.keyCode == 13){		
-			console.log("messs")	
+		if(event.keyCode == 13){			
 			sendMessage();
 			event.preventDefault();
 			return false;    
 	    }
 	});
 	$("#send").click(function(e) {
-		console.log("meeee");
 	    return e.preventDefault();
 	});
 
@@ -377,13 +368,11 @@ function init() {
 	camera.target = new THREE.Vector3(0,100,0);
 	//
 	var hour = new Date().getHours();
-	console.log(hour);
 	//時間帯ごとのセット
 	var skycolor;
 
 	// 背景
 	var hour = new Date().getHours();
-	console.log(hour);
 
 	//時間帯ごとのセット
 	if(hour >= 0 && hour < 5){
@@ -546,9 +535,7 @@ function modelReader(model_name,model_skin,model_num) {
 		characters[model_num] = new THREE.petMotion();
 		characters[model_num].scale = 20;
 
-		//console.log(character);
 		characters[model_num].onLoadComplete = function() {
-			console.log("loCon"+model_num);
 			setupAnimations( characters[model_num] );
 		}
 		characters[model_num].loadParts( config );
@@ -564,7 +551,6 @@ function setupAnimations( character ) { //アニメーションを格納しま�
 	}
 
 	var animations = character.meshBody.geometry.animations;
-	//console.log(animations.walk);
 
 	for ( var a in animations ) {
 
@@ -978,16 +964,13 @@ socket.on("model_emit",function(room) {
 });
 
 socket.on("room_model",function(req) {
-	console.log("on_room_model");
 	Model_Emit_Flag = true;
-	console.log(req.modelNo+"::"+req.modelSkin);
 
 	modelReader(req.modelNo,req.modelSkin,1);
 	//render(1,rand1_2,rand2_2);
 	model_num++;
 });
 socket.on("req_model",function() {
-	console.log("req_room");
 	if(!joinMe) {
 		console.log("req_roomjoin");
 		socket.json.emit("send_model",
