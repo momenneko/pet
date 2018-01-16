@@ -137,9 +137,8 @@
 					<span class="card-title black-text">ペットのステータス</span>
 					<ul>
 						<li>ペットの名前: <%= petname %></li>
-						<li>機嫌: <%= mood %></li>
-						<li>満腹度: <span id="hungry"><%= hungry %></p></li>
-						<li id ="sikintes">すきん：<%= modelSkin %></li>
+						<li>機嫌: <%= mood %>%</li>
+						<li>満腹度: <span id="hungry"><%= hungry %>%</p></li>
 					</ul>
 					
 					<span class="card-title black-text">ユーザー情報</span>
@@ -152,12 +151,12 @@
 					<span id="room_state">ルーム未作成</span>
 					<input id="makeRoom" type='button' value='ルーム作成' onclick='makeRoom()' /><br>
 					<span "join">ルームに入る</span>
-					<input id="joinRoomID" class="submit_button" type="text" placeholder="ここにコメントを入力"/>
+					<input id="joinRoomID" class="submit_button" type="text" placeholder="ここにルームIDを入力"/>
 					<input id="joinButton" type='button' value='ルーム加入' onclick='joinRoom()'/>
 					<div id="chat_view" class="hide">
 						<div id="chat_list"></div>
 						<form>
-							<input id="comment" type="text" value=""/>
+							<input id="comment" type="text" value="" placeholder="コメントを入力"/>
 							<input id="msg_submit" class="submit_button" type="submit" value="送信" />
 						 </form>
 					</div>
@@ -298,16 +297,16 @@ window.addEventListener("load", function () {
 	    }
 	});
 */
-	$("#gsc-i-id1").on("click",function(){
-		if(!$("#gsc-i-id1")[0].value === "") {		
-		    message_balloon($("#gsc-i-id1")[0].value + "！");
+	$("#gsc-i-id3").on("click",function(){
+		if(!$("#gsc-i-id3")[0].value === "") {		
+		    message_balloon($("#gsc-i-id3")[0].value + "！");
 		    onSearch(); 
 	    }
 	});
-		//検索ボタン
+	//検索ボタン
 	$(".gsc-search-button").click(function (){
-		if(!$("#gsc-i-id1")[0].value == "") {	
-			message_balloon($("#gsc-i-id1")[0].value + "！");
+		if(!$("#gsc-i-id3")[0].value == "") {	
+			message_balloon($("#gsc-i-id3")[0].value + "！");
 			onSearch();  
 		}    
 	});
@@ -605,8 +604,7 @@ function animate() {
 }
 
 function onSearch() {
-	var word = $("#gsc-i-id1")[0].value;
-	console.log(word);
+	var word = $("#gsc-i-id3")[0].value;
 	var id = $("#userid")[0].innerHTML;
 	prev_search_time = Date.now();
 	socket.emit("send_word",word,id);
@@ -635,13 +633,10 @@ var rand2_2 = 1;
 function rand01() {
     rand1_1 = Math.floor(3 * Math.random());
     rand1_2 = Math.floor(3 * Math.random());
-    //console.log(rand1);
-    //clearTimeout();
 }
 function rand02() { //追加
 	rand2_1 = Math.floor(5 * Math.random());
 	rand2_2 = Math.floor(5 * Math.random());
-	//console.log(rand2);
 }
 setInterval("rand01()",3000);
 setInterval("rand02()",2000); //追加
@@ -679,19 +674,15 @@ function render(model_num,rand_1,rand_2) {
                 characters[model_num].root.position.z += Math.cos(characters[model_num].root.rotation.y);
                 
             }else {
-
-                console.log("inin");
                 characters[model_num].root.position.x += Math.sin(characters[model_num].root.rotation.y);
                 characters[model_num].root.position.z += Math.cos(characters[model_num].root.rotation.y);
                 if(far < 320) {
-                    console.log("out");
                     Position_Fix_Flag = false;                
                 }
             }
             
         }        
         else if(far > 350 && !Position_Fix_Flag) {
-            console.log("in");
             Position_Fix_Flag = true;
             FixRoot = characters[model_num].root.rotation.y;
             characters[model_num].setAnimation("walk");
@@ -818,7 +809,6 @@ function food() {
 }
 
 function remark() {
-	console.log('remark')
 	var id = $("#userid")[0].innerHTML;
 	socket.emit("remark", id);
 }
@@ -904,7 +894,6 @@ socket.on("post_word", function (word) {
 
 // えさボタンを押したとき表示されている満腹度が増える
 socket.on("update_hungry_by_button", function(hungry, remark) {
-	console.log(hungry);
 	$('#hungry')[0].innerHTML = (hungry).toString(10);
 	message_balloon(remark);
 });
@@ -925,7 +914,6 @@ socket.on('disconnect', function () {
 });
 
 function sendMessage() {
-	console.log($("#comment")[0].value);
 	socket.json.emit("send_message",
 		{"room" : joinedRoom, "name": "<% username %>", "comment":$("#comment")[0].value});
 	$("#comment")[0].value = "";
@@ -939,7 +927,6 @@ $("#msg_submit").on("click",function () {
 
 
 socket.on("room_message",function (message){
-	console.log("onroommes");
 	$("#room_state")[0].innerHTML = "ルーム作成完了 id:"+joinedRoom;
 	$("#chat_view").removeClass("hide");
 
@@ -972,7 +959,6 @@ socket.on("room_model",function(req) {
 });
 socket.on("req_model",function() {
 	if(!joinMe) {
-		console.log("req_roomjoin");
 		socket.json.emit("send_model",
 		{"room" : joinedRoom, "name": "<%= username %>","modelNo":"<%= modelNo %>", "modelSkin":[ "<%= modelSkin %>" ]    }); 
 	}

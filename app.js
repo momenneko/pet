@@ -253,7 +253,6 @@ var chat = io.sockets.on("connection", function (socket) {
   console.log("connected");
   //メッセージ受信
   socket.on("send_word",function (data,id) {
-    console.log("on send_word "+id+" data"+ data);
     //console.log(history[0]);
 		if(data != "") {
 			mongo.users.count({userid: id, "history.word": data},function (err,length) {
