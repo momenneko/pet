@@ -1,5 +1,5 @@
 {
-  "name": "pet",
+  "name": "side-pet",
   "version": "0.0.1",
   "description": "you can have a pet on the web browser",
   "main": "app.js",
@@ -29,6 +29,7 @@
     "mongodb": "^2.0.43",
     "passport": "^0.3.0",
     "passport-local": "^1.0.0",
-    "passport-twitter": "^1.0.3"
+    "passport-twitter": "^1.0.3",
+    "socket.io": "^2.0.4"
   }
 }
