@@ -1,0 +1,12 @@
+# OS generated file
+.DS_Store
+
+# dependency directories
+node_modules/
+
+# environment file
+.env
+
+# log
+*.log
+past_file/
