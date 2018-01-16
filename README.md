@@ -1,17 +1,29 @@
 # SidePet
 SidePetは、自分をサポートしてくれるペットを自由に作成し飼うことができます。
-また、自分とペット、ペット同士等の交流ができるサービスです。
+また、飼い主同士、ペット同士の交流ができるWebアプリケーションです。
+
+- 癒やし: ペットが自由に歩き回る様子を見て楽しめる
+- 交流: 部屋に別のペットを呼び、飼い主同士でチャット交流ができる
+- 検索サポート: Google検索ができる・検索ワード履歴を見て自動的にペットが検索してくれる
 
 ## Installation
 ```
 git clone git@github.com:momenneko/pet.git
 ```
 
+## Set up
+`npm install` && create `.env` file including the follow variables
+```
+TWITTER_CONSUMER_KEY = ***
+TWITTER_CONSUMER_SECRET = ***
+MONGODB_URI=mongodb://localhost:27017/petdb
+
+```
 ## Usage
 ```
-npm install
 node app.js
 ```
+access to `localhost:3000`
 
 ## Contributors
 * [momenneko](https://github.com/momenneko)

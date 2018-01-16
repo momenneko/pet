@@ -1,11 +1,11 @@
-// 書き換える
-var consumerKey_twitter = 'gtrtkkN29QfYuPUiIsgmeJdpR';
-var consumerSecret_twitter = 'EVXftLchDB2AulWdZcHcMO5KKunlnNDzOLC7PqdErztuWxvGOd';
-
+var dotenv = require('dotenv').config();
 var passport = require('passport'),
     TwitterStrategy = require('passport-twitter').Strategy,
     LocalStrategy = require('passport-local').Strategy;
 var crypto = require('crypto');
+
+var consumerKey_twitter = process.env.TWITTER_CONSUMER_KEY;
+var consumerSecret_twitter = process.env.TWITTER_CONSUMER_SECRET;
 
 var mongo = require('./mongo');
 

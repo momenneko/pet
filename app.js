@@ -9,7 +9,6 @@ var socketio = require("socket.io");
 var app = express();
 var passport = require('./passport').passport;
 var mongo = require('./mongo');
-var pettalk = require('./pet_talk');
 
 // パスワードの正規表現
 var re_pass = /^[a-z\d]{8,32}$/i;
